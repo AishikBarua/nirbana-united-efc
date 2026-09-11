@@ -1,0 +1,226 @@
+// Nirbana United EFC — database schema
+// Dev: SQLite (file-based, zero setup). For production on a serverless host
+// (e.g. Vercel), switch the provider below to "postgresql" and point
+// DATABASE_URL at a hosted database — no other code changes are needed
+// because every query goes through Prisma.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Player {
+  id             String   @id @default(cuid())
+  // URL-friendly, human-readable identifier derived from name (e.g. "oishik-barua"),
+  // used for the public profile page link so it reads as a name, not a random id,
+  // and — unlike `id` — stays the same across tracker syncs as long as the name
+  // doesn't change (a sync deletes and recreates every Player row with a new id).
+  // Nullable only so existing rows survive the schema migration before their
+  // first re-sync/save backfills it; every create/update always sets one.
+  slug           String?  @unique
+  name           String
+  inGameId       String
+  photoUrl       String?
+  joinDate       DateTime
+  position       String // e.g. Striker, Midfielder, Winger, Goalkeeper, Captain
+  divisionRank   String // e.g. "Division 1", "Elite Division"
+  goals          Int      @default(0)
+  matchesPlayed  Int      @default(0)
+  wins           Int      @default(0)
+  draws          Int      @default(0)
+  losses         Int      @default(0)
+  // The player's current squad slot on the tracker, e.g. "Main #28" — sourced
+  // straight from the tracker's own jersey-number badge on the Squad tab, so
+  // it's tracker-authoritative (like goals/matches/wins) and not admin-edited.
+  squadNumber    String?
+  // This season's aggregate stats (currently "eFootball 2026" — whatever the
+  // tracker's active season is), refreshed on every sync. Nullable because a
+  // brand-new player may have no season form yet. These exist so the profile
+  // page can chart "this season vs career" without re-parsing the bio text.
+  seasonMatchesPlayed Int?
+  seasonWins          Int?
+  seasonGoalsFor      Int?
+  seasonGoalsAgainst  Int?
+  seasonWinPct        Float?
+  seasonGoalDiff      Int?
+  squadJson      String   @default("[]") // JSON string array of in-game squad card names
+  favoritePlayer String? // highlighted favorite card, e.g. "Messi"
+  favoritePlayerImage String?
+  bio            String?
+  featured       Boolean  @default(false) // show on homepage highlights
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// One row per player per sync, capturing their cumulative career totals at
+// that moment — the raw material for a real "trend over time" chart on the
+// profile page. Keyed by `inGameId`, not the Player's `id`: every sync
+// deletes and recreates all Player rows (see trackerSync.ts), so an `id`
+// foreign key would break every time; `inGameId` is the one thing that
+// actually stays stable for the same real person across syncs.
+//
+// A new row is only written when a player's totals actually changed since
+// their last snapshot (see trackerSync.ts) — so this fills in gradually,
+// sync by sync, rather than all at once. There is no way to backfill a
+// history that was never recorded, so a brand-new player (or one added
+// before this feature existed) will show "not enough history yet" on their
+// profile until a couple of real syncs have passed.
+model PlayerStatSnapshot {
+  id            String   @id @default(cuid())
+  inGameId      String
+  playerName    String // denormalized for convenience/debugging only
+  takenAt       DateTime @default(now())
+  matchesPlayed Int
+  wins          Int
+  draws         Int
+  losses        Int
+  goals         Int
+
+  @@index([inGameId, takenAt])
+}
+
+model Match {
+  id             String   @id @default(cuid())
+  opponent       String
+  opponentCrest  String?
+  date           DateTime
+  ourScore       Int?
+  opponentScore  Int?
+  status         String   @default("UPCOMING") // "UPCOMING" | "COMPLETED"
+  competition    String? // e.g. "Friendly", "Weekly League", "Cup Match"
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model News {
+  id            String   @id @default(cuid())
+  title         String
+  body          String
+  imageUrl      String?
+  publishedDate DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Standing {
+  id        String  @id @default(cuid())
+  teamName  String
+  position  Int
+  points    Int     @default(0)
+  played    Int     @default(0)
+  won       Int     @default(0)
+  drawn     Int     @default(0)
+  lost      Int     @default(0)
+  isUs      Boolean @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model GalleryImage {
+  id           String   @id @default(cuid())
+  imageUrl     String
+  caption      String?
+  uploadedDate DateTime @default(now())
+}
+
+// Singleton row (id is always "main") holding editable club-info/about text.
+model ClubInfo {
+  id          String   @id @default("main")
+  clubName    String   @default("Nirbana United EFC")
+  tagline     String   @default("Meditate. Dominate. Celebrate.")
+  founded     String   @default("2025")
+  history     String   @default("")
+  achievementsJson String @default("[]") // JSON string array of achievement strings
+  // Set every time runTrackerSync() finishes successfully (manual button click
+  // or the automatic hourly background sync — see lib/autoSync.ts) — never by
+  // hand. Lets the admin dashboard show "Last synced: X ago" so the admin can
+  // see the automatic sync is actually running without watching a terminal.
+  // Null only until the very first successful sync since this field existed.
+  lastSyncedAt DateTime?
+  updatedAt   DateTime @updatedAt
+}
+
+// One row per entry in the tracker's Transfers tab. Fully replaced on every
+// sync (the tracker is the only source for this — nothing here is admin-edited).
+model Transfer {
+  id        String   @id @default(cuid())
+  date      DateTime
+  type      String // "NEW_REGISTER" | "TRANSFER" | "UNREGISTER"
+  player    String
+  squad     String // e.g. "Main #13"
+  fromClub  String? // only set when the tracker names a previous club
+  order     Int // preserves the tracker's own display order (ties can share a date)
+  createdAt DateTime @default(now())
+}
+
+// One row per scope (All-Time + each season) from the tracker's Rankings
+// tab — a periodic snapshot, fully replaced on every sync.
+model RankingSnapshot {
+  id           String   @id @default(cuid())
+  scope        String // e.g. "All-Time", "eFootball 2026"
+  position     Int
+  division     String
+  rating       Float
+  played       Int
+  wins         Int
+  draws        Int
+  goalsFor     Int
+  goalsAgainst Int
+  winPct       Float
+  order        Int // preserves the tracker's own display order (All-Time first, then seasons)
+  updatedAt    DateTime @updatedAt
+}
+
+// One row per visitor comment on a news post or a gallery photo. Every
+// comment must be tagged with a real squad member's name (chosen from the
+// roster via the @ picker in components/CommentBox.tsx) so there's no truly
+// anonymous comment — but nothing here is tied to a real login account (the
+// public site has no visitor accounts), so the name is self-declared, not
+// authenticated; the server only checks that it matches a current player's
+// name, not that the person typing it actually IS that player. New comments
+// start PENDING and stay invisible to the public until an admin approves
+// them from /admin/comments — see app/api/comments/route.ts.
+model Comment {
+  id         String    @id @default(cuid())
+  targetType String // "NEWS" | "GALLERY"
+  targetId   String // News.id or GalleryImage.id
+  authorName String // the @-selected player's name, e.g. "Oishik Barua"
+  body       String
+  status     String    @default("PENDING") // "PENDING" | "APPROVED"
+  createdAt  DateTime  @default(now())
+  approvedAt DateTime?
+
+  @@index([targetType, targetId, status])
+}
+
+// One row per event a site visitor might want to know about — a completed
+// match result, a newly-scheduled fixture, or a published news post. Fed
+// automatically: trackerSync.ts writes a MATCH_RESULT/UPCOMING_FIXTURE row
+// only for a result/fixture that's genuinely new since the last sync (see
+// its own comment for how "new" is judged), and the news API route writes a
+// NEWS row whenever an admin publishes a post. Nothing here is ever
+// admin-edited, and it's public read-only data (see app/api/notifications) —
+// there's no per-account "read" state since the public site has no visitor
+// accounts; the bell icon tracks "seen" per-browser instead.
+model Notification {
+  id        String   @id @default(cuid())
+  type      String // "MATCH_RESULT" | "UPCOMING_FIXTURE" | "NEWS"
+  title     String
+  body      String
+  href      String? // where clicking the notification should go, if anywhere
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
