@@ -1,0 +1,19 @@
+# Netlify build configuration for Nirbana United EFC.
+#
+# Netlify auto-detects Next.js sites and builds/serves them correctly with
+# zero config in most cases (SSR, API routes, image optimization, etc. all
+# work automatically via Netlify's own Next.js support). The one thing we
+# need to override is the build COMMAND itself: this project keeps a
+# separate prisma/schema.production.prisma (Postgres) alongside the normal
+# dev schema (SQLite, in prisma/schema.prisma) — see that file's own header
+# comment for why. "npm run build:netlify" runs `prisma generate` against
+# the PRODUCTION schema before building, instead of the dev one.
+[build]
+  command = "npm run build:netlify"
+
+# Netlify scheduled functions live in netlify/functions/ by convention and
+# are picked up automatically — no extra config needed here for
+# netlify/functions/hourly-sync.mts. This section just makes the functions
+# directory explicit for clarity.
+[functions]
+  directory = "netlify/functions"

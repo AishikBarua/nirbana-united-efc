@@ -28,5 +28,6 @@ CREDENTIALS.md
 *.pem
 npm-debug.log*
 .vercel
+.netlify
 *.tsbuildinfo
 next-env.d.ts

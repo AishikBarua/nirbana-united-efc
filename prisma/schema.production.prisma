@@ -1,19 +1,19 @@
-// Nirbana United EFC — LOCAL DEVELOPMENT database schema (SQLite,
-// file-based, zero setup). This is the schema your own PC's `npm run dev` /
-// `setup-and-run.bat` always uses.
-//
-// For production on a serverless host (Netlify, Vercel, etc.), see
-// prisma/schema.production.prisma instead — a separate file with the same
-// models but a "postgresql" provider, kept in sync by hand since a single
-// schema.prisma file can't target two database engines at once. Any time
-// you add/change a model here, make the same change there.
+// Nirbana United EFC — PRODUCTION database schema (Postgres, e.g. Netlify
+// Database or Neon). This file must be kept in sync model-for-model with
+// prisma/schema.prisma (the SQLite schema used for local development) — the
+// only intentional difference between the two files is the `provider` line
+// below. Local dev keeps using prisma/schema.prisma untouched; this file is
+// only used by `npm run build:netlify` and the one-time
+// scripts/setup-netlify-database.bat, so your own PC's `npm run dev` /
+// `setup-and-run.bat` workflow is completely unaffected by this file's
+// existence.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

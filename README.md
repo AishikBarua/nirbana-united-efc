@@ -211,38 +211,71 @@ favorite player, and the "featured" flag you set in `/admin`. What it
 never touches: News, Gallery, Comments, and any other teams' rows in
 Standings.
 
-## Deploying for free
+## Deploying to Netlify (free)
 
-This app runs at zero cost:
+The site is set up to deploy to [Netlify](https://netlify.com) as a fully
+working, live site — real database, working image uploads, and the same
+hourly background sync — all on Netlify's free plan for a small club site's
+traffic. This works differently from local dev in three ways, all handled
+automatically by the code (nothing to toggle by hand):
 
-1. **Hosting**: push this repo to GitHub and import it on
-   [Vercel](https://vercel.com) (free tier covers a small club site
-   comfortably).
-2. **Database**: SQLite's on-disk file doesn't survive on Vercel's
-   serverless filesystem. Create a free database on
-   [Neon](https://neon.tech) or [Supabase](https://supabase.com)
-   (Postgres) or [Turso](https://turso.tech) (SQLite-compatible), then:
-   - In `prisma/schema.prisma`, change `provider = "sqlite"` to
-     `provider = "postgresql"` (skip this if using Turso).
-   - Set `DATABASE_URL` in Vercel's Environment Variables to the
-     connection string your provider gives you.
-   - Run `npx prisma db push` once (locally, pointed at the production
-     `DATABASE_URL`) to create the tables, then `npm run db:seed` to load
-     the default admin login (`admin@nirbanaunited.club` /
-     `ChangeMe123!` — change this password after your first login).
-   - Log into `/admin` on the live site and click **"Sync with Tracker
-     Now"** on the dashboard — this loads all the real club data (roster,
-     matches, transfers, rankings) straight from cobegbd.com, the same way
-     `update-real-data.bat`/`update-roster.bat`/`sync-with-tracker.bat` do
-     locally. No need to run those scripts against production at all.
-3. **Image uploads**: `app/api/upload/route.ts` currently writes to
-   `/public/uploads`, which does **not** persist on Vercel. Before you rely
-   on uploads in production, swap that route's file-write for an upload to
-   a free-tier bucket (Cloudinary or Supabase Storage both work well) —
-   the rest of the app only cares about the `url` string the route
-   returns, so no other file needs to change.
-4. Set `SESSION_SECRET`, `DATABASE_URL` (and your storage provider's keys,
-   once added) as environment variables in Vercel — never commit them.
+| | Local (your PC) | Netlify (live site) |
+|---|---|---|
+| Database | SQLite file (`prisma/dev.db`) | Netlify Database (Postgres) |
+| Image uploads | Saved to `/public/uploads` | Saved to Netlify Blobs |
+| Hourly tracker sync | A timer inside the running server (`lib/autoSync.ts`) | A Netlify Scheduled Function (`netlify/functions/hourly-sync.mts`) |
+
+The code detects which environment it's running in automatically
+(Netlify sets `process.env.NETLIFY` on its own) — you never set that
+yourself.
+
+### One-time setup
+
+1. **Push this repo to GitHub** — see `GITHUB-SETUP.md` if you haven't
+   already (needed either way, since Netlify deploys straight from GitHub).
+2. **Create a new site on Netlify** from that GitHub repo (Netlify's
+   dashboard: **Add new site → Import an existing project → GitHub** → pick
+   `nirbana-united-efc`). Netlify auto-detects this as a Next.js project;
+   leave the build settings as detected — `netlify.toml` in this repo
+   already tells it to run `npm run build:netlify`.
+3. **Create a Netlify Database** for the site (Netlify's dashboard: your
+   site → **Database** tab → follow its setup — this is a few clicks, no
+   command line). Copy the Postgres connection string it gives you.
+4. **Run the one-time database setup script**, `scripts/setup-netlify-database.bat`,
+   by double-clicking it on your PC. It will ask you to paste in the
+   connection string from step 3, then it creates all the tables and your
+   production admin login. It cleans up after itself so your local dev
+   database keeps working normally afterward — always let it run to the
+   end rather than closing the window partway through.
+5. **Set environment variables** on Netlify (your site → **Site
+   configuration → Environment variables**): `DATABASE_URL` (same
+   connection string from step 3), `SESSION_SECRET` and `SYNC_SECRET` (both
+   from `CREDENTIALS.md` on your PC — copy them exactly). See
+   `CREDENTIALS.md` section 2b for the full table.
+6. **Deploy** — Netlify builds and deploys automatically once the repo is
+   connected; if it already ran once before you set the environment
+   variables, trigger one more deploy from Netlify's dashboard (**Deploys →
+   Trigger deploy**) so the new variables take effect.
+7. Log into `/admin` on the live URL Netlify gives you and click **"Sync
+   with Tracker Now"** on the dashboard — this loads all the real club data
+   (roster, matches, transfers, rankings) straight from cobegbd.com, the
+   same way `update-real-data.bat`/`update-roster.bat`/`sync-with-tracker.bat`
+   do locally.
+
+### Every time you make changes afterward
+
+Netlify redeploys automatically on every push to GitHub — so the normal
+GitHub Desktop workflow in `GITHUB-SETUP.md` (review changes → commit →
+push) is all you need. No extra Netlify step, unless you're changing an
+environment variable itself.
+
+### Costs
+
+Everything above fits Netlify's free plan for a small club site's traffic:
+hosting, the scheduled sync function, and Netlify Blobs are all free-plan
+features; Netlify Database's free allowance is generous for light use, and
+the database automatically sleeps when idle to save on cost. Keep an eye on
+Netlify's own usage dashboard if traffic grows.
 
 ## Reliability & error handling
 
