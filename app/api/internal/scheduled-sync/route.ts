@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runTrackerSync } from '@/lib/trackerSync';
 import { apiErrorResponse } from '@/lib/apiErrors';
 
+// Every route here reads or writes live data (or both) — never safe to
+// let Next.js statically cache or prerender it at build time.
+export const dynamic = 'force-dynamic';
+
 // Called by netlify/functions/hourly-sync.mts once an hour — this is what
 // replaces lib/autoSync.ts's in-process setInterval on Netlify, since a
 // serverless function's process doesn't stay alive to run a timer (see

@@ -4,6 +4,10 @@ import { matchSchema } from '@/lib/validation';
 import { getMatch, updateMatch, deleteMatch } from '@/lib/services/matchService';
 import { apiErrorResponse } from '@/lib/apiErrors';
 
+// Every route here reads or writes live data (or both) — never safe to
+// let Next.js statically cache or prerender it at build time.
+export const dynamic = 'force-dynamic';
+
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const match = await getMatch(params.id);

@@ -26,6 +26,14 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
+// This whole site reads live data on every page — match results, news,
+// standings and player stats all change via admin edits and the hourly
+// tracker sync, and admin pages must reflect the logged-in session. None of
+// that should ever be baked into a static build (which would freeze the
+// site's content as of build time and never update on its own). Setting this
+// here applies to every page nested under this layout.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Nirbana United EFC',
   description: 'Official home of Nirbana United EFC — eFootball Mobile club. Meditate. Dominate. Celebrate.',

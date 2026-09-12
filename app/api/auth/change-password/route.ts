@@ -5,6 +5,10 @@ import { updateAdminPassword } from '@/lib/services/authService';
 import { rateLimit } from '@/lib/rateLimit';
 import { apiErrorResponse } from '@/lib/apiErrors';
 
+// Every route here reads or writes live data (or both) — never safe to
+// let Next.js statically cache or prerender it at build time.
+export const dynamic = 'force-dynamic';
+
 // Lets a logged-in admin change their own password from /admin/settings,
 // stored hashed in the database — the supported alternative to editing
 // ADMIN_PASSWORD in .env (which only seeds the very first account). Not

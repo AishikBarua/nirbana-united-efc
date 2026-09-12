@@ -3,6 +3,10 @@ import { requireAdmin } from '@/lib/auth';
 import { saveUploadedImage } from '@/lib/services/uploadService';
 import { apiErrorResponse } from '@/lib/apiErrors';
 
+// Every route here reads or writes live data (or both) — never safe to
+// let Next.js statically cache or prerender it at build time.
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

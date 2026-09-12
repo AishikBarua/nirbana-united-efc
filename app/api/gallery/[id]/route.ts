@@ -3,6 +3,10 @@ import { requireAdmin } from '@/lib/auth';
 import { deleteGalleryImage } from '@/lib/services/galleryService';
 import { apiErrorResponse } from '@/lib/apiErrors';
 
+// Every route here reads or writes live data (or both) — never safe to
+// let Next.js statically cache or prerender it at build time.
+export const dynamic = 'force-dynamic';
+
 export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

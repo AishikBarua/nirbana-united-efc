@@ -4,6 +4,10 @@ import { loginSchema } from '@/lib/validation';
 import { rateLimit } from '@/lib/rateLimit';
 import { verifyAdminCredentials } from '@/lib/services/authService';
 
+// Every route here reads or writes live data (or both) — never safe to
+// let Next.js statically cache or prerender it at build time.
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   // Throttle brute-force attempts: 5 tries per minute, keyed by IP + email.
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';

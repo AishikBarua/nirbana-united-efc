@@ -7,6 +7,10 @@ import { isCurrentPlayerName } from '@/lib/services/playerService';
 import { rateLimit } from '@/lib/rateLimit';
 import { apiErrorResponse } from '@/lib/apiErrors';
 
+// Every route here reads or writes live data (or both) — never safe to
+// let Next.js statically cache or prerender it at build time.
+export const dynamic = 'force-dynamic';
+
 // Public, read-only: only ever returns APPROVED comments — a pending
 // comment is invisible here regardless of who's asking, since this route
 // has no admin check at all. The admin moderation queue lives at

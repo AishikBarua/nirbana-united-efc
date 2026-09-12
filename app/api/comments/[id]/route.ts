@@ -3,6 +3,10 @@ import { requireAdmin } from '@/lib/auth';
 import { approveComment, deleteComment } from '@/lib/services/commentService';
 import { apiErrorResponse } from '@/lib/apiErrors';
 
+// Every route here reads or writes live data (or both) — never safe to
+// let Next.js statically cache or prerender it at build time.
+export const dynamic = 'force-dynamic';
+
 // Admin-only for both methods — checked directly here rather than via
 // middleware.ts's PROTECTED_API_PREFIXES, because /api/comments itself must
 // stay open for the public POST (submitting a comment needs no login) and

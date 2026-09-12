@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { runTrackerSync } from '@/lib/trackerSync';
 
+// Every route here reads or writes live data (or both) — never safe to
+// let Next.js statically cache or prerender it at build time.
+export const dynamic = 'force-dynamic';
+
 // Powers the "Sync with Tracker" button on /admin/dashboard — the online
 // equivalent of double-clicking sync-with-tracker.bat locally. Both call
 // the exact same lib/trackerSync.ts engine, so the result is identical

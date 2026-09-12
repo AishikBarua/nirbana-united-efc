@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Every route here reads or writes live data (or both) — never safe to
+// let Next.js statically cache or prerender it at build time.
+export const dynamic = 'force-dynamic';
+
 // Serves an image previously saved to Netlify Blobs by
 // lib/services/uploadService.ts's saveUploadedImage(). Only meaningful when
 // actually running on Netlify (local dev never writes to Blobs — see that
