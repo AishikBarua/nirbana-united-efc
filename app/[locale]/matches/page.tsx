@@ -132,7 +132,12 @@ export default async function MatchesPage({ params: { locale } }: { params: { lo
                 </div>
                 <div className="card-surface p-4 sm:col-span-2">
                   <h3 className="mb-3 font-display text-base font-bold text-gold-300">{t('goalsTrend')}</h3>
-                  <GoalsTrendChart matches={chronological} />
+                  {/* Prisma types ourScore/opponentScore as nullable (the column allows it for
+                      not-yet-played matches), but `results` here is already filtered to completed
+                      matches only — same assumption the `m.ourScore!` asserts above already make. */}
+                  <GoalsTrendChart
+                    matches={chronological.map((m) => ({ ...m, ourScore: m.ourScore!, opponentScore: m.opponentScore! }))}
+                  />
                 </div>
               </div>
             );
