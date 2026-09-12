@@ -34,9 +34,45 @@ export function generateStaticParams() {
 // here applies to every page nested under this layout.
 export const dynamic = 'force-dynamic';
 
+const SITE_URL = 'https://nirbana-united-efc.netlify.app';
+const SITE_TITLE = 'Nirbana United EFC';
+const SITE_DESCRIPTION =
+  'Official home of Nirbana United EFC — eFootball Mobile club. Meditate. Dominate. Celebrate.';
+
 export const metadata: Metadata = {
-  title: 'Nirbana United EFC',
-  description: 'Official home of Nirbana United EFC — eFootball Mobile club. Meditate. Dominate. Celebrate.',
+  // Lets Next.js turn the relative image path below into the full,
+  // absolute URL that link-preview crawlers (WhatsApp, Messenger, iMessage,
+  // Discord, Facebook, X/Twitter, LinkedIn, Slack, etc.) require — a relative
+  // path alone would be silently ignored by most of them.
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  // Open Graph tags: this is what makes a pasted link show a thumbnail
+  // image + title + description in chat apps and social feeds instead of
+  // just plain blue text.
+  openGraph: {
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_TITLE,
+    type: 'website',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Nirbana United EFC — eFootball Mobile club',
+      },
+    ],
+  },
+  // Twitter/X reads its own separate tag set rather than falling back to
+  // Open Graph in every client, so it's set explicitly too.
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ['/og-image.jpg'],
+  },
 };
 
 export default async function LocaleLayout({

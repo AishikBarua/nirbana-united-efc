@@ -18,6 +18,7 @@
 
 # your own credentials reference — never publish this
 CREDENTIALS.md
+PROJECT-CREDENTIALS.md
 
 # uploads (keep the folder, ignore uploaded content)
 /public/uploads/*
