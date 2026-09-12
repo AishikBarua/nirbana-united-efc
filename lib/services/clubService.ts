@@ -10,8 +10,18 @@ export function getClubInfo() {
 }
 
 export function saveClubInfo(input: ClubInfoInput) {
-  const { achievements, ...rest } = input;
-  const data = { ...rest, achievementsJson: JSON.stringify(achievements) };
+  const { achievements, tagline, founded, history, ...rest } = input;
+  // The form (and its zod schema) allows these to be cleared to null, but the
+  // database columns are plain non-nullable strings with empty-string
+  // defaults (see prisma/schema.prisma / schema.production.prisma) — so a
+  // cleared field is stored as "", not null.
+  const data = {
+    ...rest,
+    tagline: tagline ?? '',
+    founded: founded ?? '',
+    history: history ?? '',
+    achievementsJson: JSON.stringify(achievements),
+  };
   return prisma.clubInfo.upsert({
     where: { id: 'main' },
     update: data,
