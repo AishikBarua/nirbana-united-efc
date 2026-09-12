@@ -68,7 +68,7 @@ export default async function PlayerProfilePage({
             { label: t('wins'), value: player.wins },
             { label: t('draws'), value: player.draws },
             { label: t('losses'), value: player.losses },
-            { label: t('winRate'), value: `${winRate(player.wins, player.matchesPlayed)}%` },
+            { label: t('winRate'), value: `${winRate(player.wins, player.matchesPlayed, player.draws)}%` },
           ].map((stat) => (
             <div key={stat.label} className="card-surface p-4 text-center">
               <div className="font-display text-xl font-bold text-gold-300">{stat.value}</div>
@@ -87,7 +87,7 @@ export default async function PlayerProfilePage({
         <section className="card-surface p-6">
           <h2 className="mb-4 font-display text-lg font-bold text-gold-200">{t('careerVsSeason')}</h2>
           <CareerVsSeasonBars
-            career={{ matchesPlayed: player.matchesPlayed, goals: player.goals, wins: player.wins }}
+            career={{ matchesPlayed: player.matchesPlayed, goals: player.goals, wins: player.wins, draws: player.draws }}
             season={{
               matchesPlayed: player.seasonMatchesPlayed,
               goalsFor: player.seasonGoalsFor,

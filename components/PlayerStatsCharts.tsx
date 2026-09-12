@@ -81,7 +81,7 @@ export function CareerResultDonut({ wins, draws, losses }: WinDrawLoss) {
 }
 
 type CareerVsSeasonProps = {
-  career: { matchesPlayed: number; goals: number; wins: number };
+  career: { matchesPlayed: number; goals: number; wins: number; draws: number };
   season: {
     matchesPlayed: number | null;
     goalsFor: number | null;
@@ -97,7 +97,7 @@ export function CareerVsSeasonBars({ career, season }: CareerVsSeasonProps) {
     return <p className="text-sm text-gold-100/40">Season stats aren&apos;t available for this player yet.</p>;
   }
 
-  const careerWinPct = winRate(career.wins, career.matchesPlayed);
+  const careerWinPct = winRate(career.wins, career.matchesPlayed, career.draws);
   const rows: { label: string; career: number; season: number; suffix?: string }[] = [
     { label: 'Matches Played', career: career.matchesPlayed, season: season.matchesPlayed ?? 0 },
     { label: 'Goals', career: career.goals, season: season.goalsFor ?? 0 },

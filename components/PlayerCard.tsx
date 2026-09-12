@@ -47,7 +47,7 @@ export default function PlayerCard({ player }: { player: Player }) {
           </div>
           <div>
             <div className="font-display text-base font-bold text-signal-teal">
-              {winRate(player.wins, player.matchesPlayed)}%
+              {winRate(player.wins, player.matchesPlayed, player.draws)}%
             </div>
             <div className="text-[10px] uppercase tracking-wide text-gold-100/40">{t('winRate')}</div>
           </div>

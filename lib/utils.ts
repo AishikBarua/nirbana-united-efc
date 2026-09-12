@@ -8,9 +8,20 @@ export function parseJsonArray(value: string | null | undefined): string[] {
   }
 }
 
-export function winRate(wins: number, matchesPlayed: number): number {
+/**
+ * A draw counts as half a win — the same convention already used by the
+ * matches page's own stat block and by the tracker-sync-generated player
+ * bio text (see lib/trackerSync.ts). `draws` defaults to 0 so a caller with
+ * no draws figure to hand still gets a sane result, but every caller that
+ * has one should pass it: before this took `draws` into account, a
+ * player's "Win Rate" stat tile could show a different number than the
+ * "X% win rate" mentioned a few lines below in their own bio, for the
+ * exact same underlying record — same wins/draws/losses, two different
+ * displayed percentages on the same page.
+ */
+export function winRate(wins: number, matchesPlayed: number, draws = 0): number {
   if (!matchesPlayed) return 0;
-  return Math.round((wins / matchesPlayed) * 100);
+  return Math.round(((wins + draws / 2) / matchesPlayed) * 100);
 }
 
 export function matchResultForUs(ourScore: number | null, opponentScore: number | null): 'W' | 'D' | 'L' | null {
