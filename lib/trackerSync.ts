@@ -813,6 +813,10 @@ export async function runTrackerSync(): Promise<SyncResult> {
       tagline: header.tagline,
       history,
       achievementsJson: JSON.stringify(achievements),
+      // Read fresh every sync (see parseSeasonLabel above) rather than
+      // assumed, so the player stat card's "Season" toggle label moves
+      // forward on its own once the tracker rolls over to a new season.
+      currentSeasonLabel: seasonLabel ?? null,
     };
   }
 

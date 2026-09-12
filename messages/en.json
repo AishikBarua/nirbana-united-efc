@@ -107,7 +107,18 @@
     "careerVsSeason": "Career vs This Season",
     "statsTrend": "Stats Over Time",
     "matchHighlights": "Match Highlights",
-    "noHighlights": "No highlights uploaded yet."
+    "noHighlights": "No highlights uploaded yet.",
+    "statCard": {
+      "downloadButton": "Download Player Card",
+      "allTime": "All-Time",
+      "season": "Season",
+      "save": "Save Image",
+      "saving": "Generating…",
+      "motm": "Man of the Match",
+      "motmTag": "TRACKED REPORTS",
+      "motmNote": "Man of the Match count only covers matches we have a saved report for — not a full career total.",
+      "allTimeOfficial": "All-Time Official"
+    }
   },
   "matches": {
     "title": "Matches",

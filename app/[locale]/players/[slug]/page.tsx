@@ -4,11 +4,15 @@ import { getTranslations, getFormatter, unstable_setRequestLocale } from 'next-i
 import { parseJsonArray, winRate } from '@/lib/utils';
 import { getPlayerByRouteParam, getPlayerStatHistory } from '@/lib/services/playerService';
 import { listHighlightsForPlayer } from '@/lib/services/highlightService';
+import { countManOfTheMatch } from '@/lib/services/matchService';
+import { getClubInfo } from '@/lib/services/clubService';
+import { SITE_URL } from '@/app/[locale]/layout';
 import PlayerPhoto from '@/components/PlayerPhoto';
 import { CareerResultDonut, CareerVsSeasonBars, StatTrendChart } from '@/components/PlayerStatsCharts';
 import BackLink from '@/components/BackLink';
 import FloatingBackLink from '@/components/FloatingBackLink';
 import HighlightsLightbox from '@/components/HighlightsLightbox';
+import PlayerStatCard from '@/components/PlayerStatCard';
 
 export default async function PlayerProfilePage({
   params: { locale, slug },
@@ -25,6 +29,16 @@ export default async function PlayerProfilePage({
   const squad = parseJsonArray(player.squadJson);
   const statHistory = await getPlayerStatHistory(player.inGameId);
   const highlights = await listHighlightsForPlayer(player.inGameId);
+  const [motmCount, clubInfo] = await Promise.all([
+    countManOfTheMatch(player.name),
+    getClubInfo(),
+  ]);
+  const hasSeasonStats =
+    player.seasonMatchesPlayed != null &&
+    player.seasonWins != null &&
+    player.seasonGoalsFor != null &&
+    player.seasonGoalsAgainst != null &&
+    player.seasonGoalDiff != null;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
@@ -57,8 +71,39 @@ export default async function PlayerProfilePage({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-gold-100/50 sm:justify-start">
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-gold-100/50 sm:justify-between">
         <span>{t('joined')}: {format.dateTime(new Date(player.joinDate), { dateStyle: 'long' })}</span>
+        <PlayerStatCard
+          slug={player.slug ?? player.id}
+          name={player.name}
+          photoUrl={player.photoUrl}
+          position={player.position}
+          divisionRank={player.divisionRank}
+          squadNumber={player.squadNumber}
+          inGameId={player.inGameId}
+          crestUrl="/brand/crest.jpg"
+          siteHost={SITE_URL.replace(/^https?:\/\//, '')}
+          motmCount={motmCount}
+          allTime={{
+            matchesPlayed: player.matchesPlayed,
+            wins: player.wins,
+            draws: player.draws,
+            losses: player.losses,
+            goals: player.goals,
+          }}
+          season={
+            hasSeasonStats
+              ? {
+                  matchesPlayed: player.seasonMatchesPlayed as number,
+                  wins: player.seasonWins as number,
+                  goalsFor: player.seasonGoalsFor as number,
+                  goalsAgainst: player.seasonGoalsAgainst as number,
+                  goalDiff: player.seasonGoalDiff as number,
+                }
+              : null
+          }
+          seasonLabel={clubInfo?.currentSeasonLabel ?? null}
+        />
       </div>
 
       {/* Career stats */}

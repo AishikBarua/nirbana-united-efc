@@ -207,6 +207,14 @@ model ClubInfo {
   // see the automatic sync is actually running without watching a terminal.
   // Null only until the very first successful sync since this field existed.
   lastSyncedAt DateTime?
+  // The tracker's own current-season label (e.g. "Season 2026"), read fresh
+  // off the Match Stats tab on every sync (see parseSeasonLabel in
+  // trackerSync.ts) — never hand-typed, so it moves forward on its own once
+  // the tracker rolls over to a new season. Used for the "Season" toggle on
+  // the downloadable player stat card (see PlayerStatCard.tsx); null until
+  // the first sync since this field existed, or if that tab's layout ever
+  // changes enough that the label can't be found.
+  currentSeasonLabel String?
   updatedAt   DateTime @updatedAt
 }
 

@@ -78,3 +78,35 @@ export async function getMatchReport(cobegMatchId: number): Promise<MatchReportD
     return null;
   }
 }
+
+/**
+ * How many times `playerName` was named Man of the Match, counted from the
+ * match reports we've actually cached (see lib/matchReportSync.ts) — NOT a
+ * true career total. We have no full-career MOTM data source at all; this
+ * only ever covers whichever completed matches currently have a cached
+ * report (in practice the tracker's last ~14 rounds, plus anything an admin
+ * has manually backfilled a report link for — see cobegMatchId in
+ * lib/validation.ts). Used by the downloadable player stat card
+ * (PlayerStatCard.tsx), which labels this figure "tracked reports" rather
+ * than presenting it as a full career count, so this undercount is never
+ * shown as more authoritative than it is. Compares names case-insensitively
+ * (trimmed) since both sides ultimately come from the same tracker, but a
+ * cosmetic mismatch (extra whitespace, a stray capital) shouldn't silently
+ * drop a match from the count.
+ */
+export async function countManOfTheMatch(playerName: string): Promise<number> {
+  const target = playerName.trim().toLowerCase();
+  if (!target) return 0;
+  const rows = await prisma.matchReport.findMany({ select: { dataJson: true } });
+  let count = 0;
+  for (const row of rows) {
+    try {
+      const data = JSON.parse(row.dataJson) as MatchReportData;
+      if (data.manOfTheMatch?.name?.trim().toLowerCase() === target) count += 1;
+    } catch {
+      // Corrupted/unreadable cache entry — skip it rather than crash a
+      // profile page over one bad row.
+    }
+  }
+  return count;
+}

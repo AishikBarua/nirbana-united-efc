@@ -34,7 +34,10 @@ export function generateStaticParams() {
 // here applies to every page nested under this layout.
 export const dynamic = 'force-dynamic';
 
-const SITE_URL = 'https://nirbana-united-efc.netlify.app';
+// Exported so other pages (e.g. the downloadable player stat card's footer
+// text) can derive the site's public hostname from this one place instead
+// of hardcoding it a second time.
+export const SITE_URL = 'https://nirbana-united-efc.netlify.app';
 const SITE_TITLE = 'Nirbana United EFC';
 const SITE_DESCRIPTION =
   'Official home of Nirbana United EFC — eFootball Mobile club. Meditate. Dominate. Celebrate.';

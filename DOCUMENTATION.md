@@ -324,6 +324,48 @@ row id — matches, the same reasoning `PlayerStatSnapshot` already relies on
 
 ---
 
+## 8b. Downloadable player stat card
+
+Every player's public profile page has a "Download Player Card" button —
+modeled on cobegbd.com's own downloadable stat cards, but restyled in
+Nirbana United's own dark/gold look rather than a copy of the tracker's
+blue/white branding. Clicking it opens a preview of a branded, shareable
+image built entirely from data this site already stores for that player
+(photo, name, position, squad number, All-Time Rank, and PL/W/D/L/GF —
+or, on the "Season" toggle, PL/W/GF/GA/GD), plus a "Save Image" button
+that downloads it as a PNG.
+
+**How the image is actually generated — no server involved.** The card is
+built as ordinary HTML/CSS (`components/PlayerStatCard.tsx`), then
+rasterized to a PNG entirely in the visitor's own browser using the
+`html2canvas` library. There's no new API route, no image stored anywhere,
+and no load on the server beyond the normal page render — every visitor's
+download is generated on their own device from data already on the page.
+
+**Why the angular shapes are SVG, not CSS `clip-path`:** html2canvas does
+not support `clip-path`, so the banner/panel/medallion/stat-chip shapes are
+drawn as plain SVG polygons/lines/circles layered under ordinary HTML text
+— see the comment at the top of `PlayerStatCard.tsx` for the full reasoning
+and what still had to be double-checked once this could be tried in a real
+browser.
+
+**Season toggle and its label.** The "Season" option only appears once a
+player has season stats (`Player.seasonMatchesPlayed` etc. — a brand-new
+player may not yet). Its label (e.g. "Season 2026") comes from
+`ClubInfo.currentSeasonLabel`, read fresh off the tracker's Match Stats tab
+on every sync (`parseSeasonLabel` in `lib/trackerSync.ts`) rather than
+hardcoded, so it moves forward on its own once the tracker rolls over to a
+new season — no code change needed then.
+
+**Man of the Match count is an honest partial figure, not a career total.**
+There is no data source for a player's full-career MOTM count. The card
+shows how many times that player was named Man of the Match across
+whichever matches this site has a cached full report for (see section 8a) —
+`countManOfTheMatch()` in `lib/services/matchService.ts` — and always
+labels it "tracked reports" so it's never mistaken for a complete total.
+
+---
+
 ## 9. Authentication & security
 
 - **Sessions**: a custom, dependency-free signed-cookie scheme — the cookie
