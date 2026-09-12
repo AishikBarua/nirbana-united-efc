@@ -168,9 +168,12 @@ the real, complete 25-player roster — every squad member, with real
 in-game UID, device, goals, and win/draw/loss record, merged from the
 club's tracker screenshots. The full squad is visible to anyone on the
 public **Roster** page (no login needed) — that's already "everyone can
-see all members." Each player's exact football position, division rank,
-join date, and photo aren't published by the tracker, so those are loaded
-as placeholders — edit any player in `/admin` to fill in the real details.
+see all members." Each player's exact football position, join date, and
+photo aren't published by the tracker, so those are loaded as placeholders
+— edit any player in `/admin` to fill in the real details. (The roster's
+"All-Time Rank" badge — each player's numeric rank on the tracker site — IS
+published by the tracker, and updates on its own with every sync below;
+there's nothing to fill in for that one.)
 
 ## Keeping data in sync with the tracker
 

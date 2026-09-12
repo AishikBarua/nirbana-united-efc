@@ -8,25 +8,55 @@ type PlayerInput = z.infer<typeof playerSchema>;
 const SORT_MAP: Record<string, Prisma.PlayerOrderByWithRelationInput> = {
   joinDate: { joinDate: 'desc' },
   goals: { goals: 'desc' },
-  divisionRank: { divisionRank: 'asc' },
   name: { name: 'asc' },
 };
 
+/**
+ * `divisionRank` doesn't actually hold a competitive division (e.g.
+ * "Division 1") — despite the field/column name, trackerSync.ts fills it
+ * with each player's numeric ALL-TIME RANK from the tracker site (e.g.
+ * "#6576"), scraped from that page's own `data-alltime-rank` attribute. The
+ * UI now calls this "All-Time Rank" to match. Because it's stored as text,
+ * a plain string sort/compare gets the order wrong — "#10391" sorts before
+ * "#6576" character-by-character ('1' < '6') even though 10391 is the
+ * bigger number — so callers that care about real rank order must sort
+ * using this instead of the raw string. "Unranked" (or anything else
+ * unexpected) always sorts last, which is what "not ranked" should mean
+ * either way you sort.
+ */
+function allTimeRankValue(divisionRank: string): number {
+  const match = /^#(\d+)$/.exec(divisionRank);
+  return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
+}
+
 /** Roster list, with the same filter/sort options the public roster page and the tracker sync agree on. */
-export function listPlayers(options?: { position?: string; division?: string; sort?: string }) {
+export async function listPlayers(options?: { position?: string; division?: string; sort?: string }) {
   const where: Prisma.PlayerWhereInput = {};
   if (options?.position) where.position = options.position;
   if (options?.division) where.divisionRank = options.division;
+
+  if (options?.sort === 'divisionRank') {
+    // Can't express "sort this text column as numbers" as a Prisma/SQL
+    // orderBy portably across SQLite (dev) and Postgres (prod) — see
+    // allTimeRankValue() above — so this one sort mode is done in JS instead.
+    const rows = await prisma.player.findMany({ where });
+    return rows.sort((a, b) => allTimeRankValue(a.divisionRank) - allTimeRankValue(b.divisionRank));
+  }
+
   const orderBy = SORT_MAP[options?.sort ?? 'joinDate'] ?? SORT_MAP.joinDate;
   return prisma.player.findMany({ where, orderBy });
 }
 
-/** Distinct position/division values currently on the roster, for the filter dropdowns. */
+/** Distinct position/rank values currently on the roster, for the filter dropdowns. */
 export async function listPlayerFilterOptions() {
   const all = await prisma.player.findMany({ select: { position: true, divisionRank: true } });
   return {
     positions: Array.from(new Set(all.map((p) => p.position))).sort(),
-    divisions: Array.from(new Set(all.map((p) => p.divisionRank))).sort(),
+    // Numeric-aware sort — see allTimeRankValue() above for why a plain
+    // string .sort() would list these in the wrong order.
+    divisions: Array.from(new Set(all.map((p) => p.divisionRank))).sort(
+      (a, b) => allTimeRankValue(a) - allTimeRankValue(b)
+    ),
   };
 }
 

@@ -91,7 +91,7 @@ export default function PlayerForm({ player }: { player?: Player }) {
         </div>
         <div>
           <label className="label-field">{t('divisionRank')}</label>
-          <input required className="input-field" value={form.divisionRank} onChange={(e) => set('divisionRank', e.target.value)} placeholder="e.g. Division 1" />
+          <input required className="input-field" value={form.divisionRank} onChange={(e) => set('divisionRank', e.target.value)} placeholder="e.g. #6576 or Unranked" />
         </div>
         <div>
           <label className="label-field">{t('joinDate')}</label>
