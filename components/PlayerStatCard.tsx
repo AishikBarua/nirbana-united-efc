@@ -165,6 +165,22 @@ function CardFace({
         overflow: 'hidden',
         background: '#0a0806',
         fontFamily: 'inherit',
+        // The REAL cause of the name/subtitle/footer text looking fine in
+        // the small on-screen preview but coming out clipped almost to
+        // invisibility in the downloaded PNG: this component is rendered
+        // inside a parent that carries Tailwind's `text-xs` class (see
+        // players/[slug]/page.tsx), which sets `line-height: 1rem` (16px).
+        // None of this component's text elements set their own line-height,
+        // so they all inherit that fixed 16px value verbatim (CSS inherits
+        // a px line-height as-is, not recalculated per descendant). At the
+        // small 320px preview the text is scaled down enough that 16px
+        // looks like normal leading, but at full 1080px export resolution
+        // (where the name renders at 50px) a 16px line box clips most of
+        // each glyph — exactly the "name not showing" bug. Setting a
+        // unitless line-height here means every descendant recalculates it
+        // against ITS OWN font-size instead of inheriting a stray fixed
+        // pixel value from whatever page this card is ever embedded in.
+        lineHeight: 1.15,
       }}
     >
       {/* Photo */}
