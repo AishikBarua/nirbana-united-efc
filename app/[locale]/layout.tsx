@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { locales } from '@/i18n';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import VisitTracker from '@/components/VisitTracker';
 import '../globals.css';
 
 const display = Cinzel({
@@ -94,6 +95,7 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${display.variable} ${body.variable}`}>
       <body className="min-h-screen bg-ink-950 bg-radial-fade font-body antialiased">
         <NextIntlClientProvider messages={messages}>
+          <VisitTracker />
           <div className="flex min-h-screen flex-col">
             <Navbar />
             <main className="flex-1">{children}</main>

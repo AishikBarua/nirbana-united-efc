@@ -290,3 +290,39 @@ model Notification {
 
   @@index([createdAt])
 }
+
+// One row per page view on the public site, for the admin-only visitor
+// analytics page (/admin/analytics). Written by app/api/track/route.ts,
+// which the client-side VisitTracker component pings on first load and on
+// every client-side route change (admin pages are never tracked). Never
+// admin-edited or shown to the public — this is purely for the club owner
+// to see how many people are finding the site.
+//
+// `visitorId` comes from a long-lived (~2 year) anonymous cookie set by the
+// same route the first time a browser is seen, so repeat visits by the same
+// browser can be counted ("how many times") without any login — it does
+// not identify a real person by itself. `ipAddress`/`country`/`city` come
+// from Netlify's own request headers (x-nf-client-connection-ip / x-nf-geo)
+// when running on Netlify, and are best-effort/null in local dev. Kept as
+// its own append-only log (never updated in place) so the dashboard's
+// totals and trends are always exact sums over real rows.
+model SiteVisit {
+  id         String   @id @default(cuid())
+  visitorId  String // anonymous cookie id — same value across a browser's repeat visits
+  path       String // e.g. "/en/players" (locale-prefixed, as the visitor actually requested it)
+  locale     String?
+  ipAddress  String?
+  country    String?
+  countryCode String?
+  city       String?
+  userAgent  String?
+  browser    String?
+  os         String?
+  deviceType String? // "desktop" | "mobile" | "tablet" | "bot" | "unknown"
+  referrer   String?
+  createdAt  DateTime @default(now())
+
+  @@index([visitorId])
+  @@index([createdAt])
+  @@index([path])
+}

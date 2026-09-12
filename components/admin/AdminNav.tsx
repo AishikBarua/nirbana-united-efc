@@ -15,6 +15,7 @@ export default async function AdminNav() {
     { href: '/admin/highlights', label: t('manageHighlights') },
     { href: '/admin/comments', label: t('manageComments') },
     { href: '/admin/club', label: t('manageClub') },
+    { href: '/admin/analytics', label: t('analytics') },
     { href: '/admin/settings', label: t('settings') },
   ];
 

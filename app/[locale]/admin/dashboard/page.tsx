@@ -22,6 +22,7 @@ export default async function AdminDashboardPage({ params: { locale } }: { param
     { href: '/admin/highlights', label: t('manageHighlights') },
     { href: '/admin/comments', label: t('manageComments'), badge: pendingComments > 0 ? pendingComments : undefined },
     { href: '/admin/club', label: t('manageClub') },
+    { href: '/admin/analytics', label: t('analytics') },
     { href: '/admin/settings', label: t('settings') },
   ];
 

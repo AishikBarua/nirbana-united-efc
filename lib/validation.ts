@@ -106,6 +106,17 @@ export const playerHighlightSchema = z.object({
   matchCompetition: z.string().trim().max(100).optional().nullable(),
 });
 
+// Client-supplied half of a /api/track visit ping — everything else
+// (IP, geo, user-agent, the visitor_id cookie) is read server-side from the
+// request itself, never trusted from the body. Kept deliberately small and
+// capped since this is a public, unauthenticated endpoint anyone can POST
+// to directly.
+export const trackVisitSchema = z.object({
+  path: z.string().trim().min(1).max(300),
+  locale: z.string().trim().max(10).optional().nullable(),
+  referrer: z.string().trim().max(500).optional().nullable(),
+});
+
 export const clubInfoSchema = z.object({
   clubName: z.string().trim().min(1).max(150),
   tagline: z.string().trim().max(200).optional().nullable(),

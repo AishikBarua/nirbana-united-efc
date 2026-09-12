@@ -35,7 +35,8 @@
     "groupResults": "ফলাফল",
     "groupClub": "ক্লাব",
     "groupCompetition": "প্রতিযোগিতা",
-    "groupNews": "সংবাদ"
+    "groupNews": "সংবাদ",
+    "privacyNotice": "ক্লাবকে দর্শক সম্পর্কে বুঝতে সাহায্য করার জন্য এই সাইট বেনামী ভিজিট পরিসংখ্যান (সাধারণ অবস্থান এবং ডিভাইসের ধরন) সংরক্ষণ করে।"
   },
   "notifications": {
     "title": "নোটিফিকেশন",
@@ -245,7 +246,8 @@
         "justNow": "এইমাত্র"
       },
       "settings": "পাসওয়ার্ড পরিবর্তন করুন",
-      "manageComments": "মন্তব্য পরিচালনা"
+      "manageComments": "মন্তব্য পরিচালনা",
+      "analytics": "ভিজিটর অ্যানালিটিক্স"
     },
     "players": {
       "title": "খেলোয়াড়",
@@ -355,6 +357,33 @@
       "onNews": "সংবাদ পোস্টে",
       "onGallery": "গ্যালারি ছবিতে",
       "empty": "এখানে কিছু নেই।"
+    },
+    "analytics": {
+      "title": "ভিজিটর অ্যানালিটিক্স",
+      "subtitle": "কতজন মানুষ সাইটটি খুঁজে পাচ্ছেন এবং তারা কোথা থেকে আসছেন। শুধুমাত্র অ্যাডমিনদের জন্য দৃশ্যমান।",
+      "totalVisits": "মোট ভিজিট (সর্বকালীন)",
+      "totalUniqueVisitors": "স্বতন্ত্র ভিজিটর (সর্বকালীন)",
+      "visitsToday": "আজকের ভিজিট",
+      "visitsInRange": "ভিজিট (গত {days} দিন)",
+      "uniqueVisitorsInRange": "স্বতন্ত্র ভিজিটর (গত {days} দিন)",
+      "lastNDays": "গত {days} দিন",
+      "dailyTrend": "দৈনিক ভিজিট",
+      "topPages": "শীর্ষ পেজ",
+      "topCountries": "শীর্ষ দেশ",
+      "deviceBreakdown": "ডিভাইসের ধরন",
+      "browserBreakdown": "ব্রাউজার",
+      "detailedLog": "বিস্তারিত ভিজিট লগ",
+      "columnTime": "সময়",
+      "columnPage": "পেজ",
+      "columnLocation": "অবস্থান",
+      "columnIp": "আইপি ঠিকানা",
+      "columnDevice": "ডিভাইস",
+      "columnVisitor": "ভিজিটর",
+      "noData": "এখনও পর্যাপ্ত তথ্য নেই।",
+      "unknown": "অজানা",
+      "pageOf": "পেজ {page} এর {totalPages}",
+      "previous": "পূর্ববর্তী",
+      "next": "পরবর্তী"
     }
   },
   "errorBoundary": {

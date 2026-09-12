@@ -35,7 +35,8 @@
     "groupResults": "Results",
     "groupClub": "Club",
     "groupCompetition": "Competition",
-    "groupNews": "News"
+    "groupNews": "News",
+    "privacyNotice": "This site keeps anonymous visit statistics (general location and device type) to help the club understand its audience."
   },
   "notifications": {
     "title": "Notifications",
@@ -245,7 +246,8 @@
         "justNow": "just now"
       },
       "settings": "Change Password",
-      "manageComments": "Manage Comments"
+      "manageComments": "Manage Comments",
+      "analytics": "Visitor Analytics"
     },
     "players": {
       "title": "Players",
@@ -355,6 +357,33 @@
       "onNews": "On news post",
       "onGallery": "On gallery photo",
       "empty": "Nothing here."
+    },
+    "analytics": {
+      "title": "Visitor Analytics",
+      "subtitle": "How many people are finding the site, and where they're coming from. Visible to admins only.",
+      "totalVisits": "Total Visits (All-Time)",
+      "totalUniqueVisitors": "Unique Visitors (All-Time)",
+      "visitsToday": "Visits Today",
+      "visitsInRange": "Visits (Last {days} Days)",
+      "uniqueVisitorsInRange": "Unique Visitors (Last {days} Days)",
+      "lastNDays": "Last {days} Days",
+      "dailyTrend": "Daily Visits",
+      "topPages": "Top Pages",
+      "topCountries": "Top Countries",
+      "deviceBreakdown": "Device Type",
+      "browserBreakdown": "Browser",
+      "detailedLog": "Detailed Visit Log",
+      "columnTime": "Time",
+      "columnPage": "Page",
+      "columnLocation": "Location",
+      "columnIp": "IP Address",
+      "columnDevice": "Device",
+      "columnVisitor": "Visitor",
+      "noData": "Not enough data yet.",
+      "unknown": "Unknown",
+      "pageOf": "Page {page} of {totalPages}",
+      "previous": "Previous",
+      "next": "Next"
     }
   },
   "errorBoundary": {

@@ -26,6 +26,7 @@ export default function Footer() {
         <div className="mt-6 border-t border-gold-400/10 pt-4 text-center text-[11px] text-gold-100/30">
           © {year} Nirbana United EFC. All rights reserved.
         </div>
+        <div className="mt-2 text-center text-[10px] text-gold-100/20">{t('privacyNotice')}</div>
       </div>
     </footer>
   );
