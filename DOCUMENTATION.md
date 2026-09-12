@@ -120,6 +120,8 @@ exact field list):
 | `RankingSnapshot` | All-Time + per-season rank/rating snapshots from the tracker's Rankings tab |
 | `Comment` | Visitor comments on news posts and gallery photos (moderated) |
 | `Notification` | Auto-generated feed items (new result, new fixture, new news post) |
+| `MatchReport` | Cached full per-player stat breakdown for one match, scraped from that match's own page on the tracker (see section 8a) |
+| `PlayerHighlight` | Admin-uploaded highlight photos for a player, optionally tagged to one of their completed matches (see section 8a) |
 
 A few important conventions baked into the schema:
 
@@ -149,8 +151,9 @@ switchable from the language toggle in the navbar.
 | Home | `/` | Hero banner, quick stats (active members / total wins / league position), recent match results, upcoming fixtures, latest news |
 | Club | `/club` | About text, founding year, history, achievements |
 | Roster | `/players` | Every squad member as a card (photo, position, all-time rank, goals/matches/win rate), with sort and filter controls |
-| Player Profile | `/players/[slug]` | Full career stats, a win/draw/loss donut chart, a career-vs-this-season bar comparison, a stats-over-time trend line (once enough sync history exists), squad cards, favorite player, and bio |
-| Matches | `/matches` | Full fixture list and results, aggregate win-rate stats |
+| Player Profile | `/players/[slug]` | Full career stats, a win/draw/loss donut chart, a career-vs-this-season bar comparison, a stats-over-time trend line (once enough sync history exists), squad cards, favorite player, bio, and a **Match Highlights** gallery of admin-uploaded photos (see section 8a) |
+| Matches | `/matches` | Full fixture list and results, aggregate win-rate stats, and a **"View Full Report"** link on any completed match that has one (see section 8a) |
+| Match Report | `/matches/report/[cobegMatchId]` | A single match's full detail page — team crests and score, Man of the Match, aggregate team stats, and a 1-vs-1 stat comparison for every player pairing (see section 8a) |
 | Standings | `/standings` | The club's league-table row (position, points, record) |
 | Transfers | `/transfers` | Chronological log of new registrations, transfers, and departures |
 | Rankings | `/rankings` | All-Time and per-season rank/rating snapshots |
@@ -188,6 +191,7 @@ There is exactly one admin account (the club captain).
 | Manage News | `/admin/news` | Full CRUD for news posts, with image upload |
 | Manage Standings | `/admin/standings` | Edit the club's league-table row |
 | Manage Gallery | `/admin/gallery` | Upload and delete gallery photos |
+| Manage Highlights | `/admin/highlights` | Upload a highlight photo to a player's profile, optionally tagged to one of their completed matches (see section 8a) |
 | Manage Comments | `/admin/comments` | Approve or delete pending visitor comments |
 | Club Info | `/admin/club` | Edit the "About" text, tagline, founding year, achievements |
 | Settings | `/admin/settings` | Change the admin password, log out |
@@ -204,8 +208,8 @@ Every API route lives under `app/api/` and returns JSON. Routes are grouped
 by resource, and each supports the HTTP verbs that make sense for it
 (`GET` for public reads, `POST`/`PUT`/`DELETE` for admin-only writes):
 
-`players`, `matches`, `news`, `standings`, `gallery`, `club`, `comments` —
-standard CRUD resources.
+`players`, `matches`, `news`, `standings`, `gallery`, `highlights`, `club`,
+`comments` — standard CRUD resources.
 `search` — live search across players/matches/news.
 `notifications` — the auto-generated notification feed.
 `upload` — handles image uploads (routes to Netlify Blobs in production,
@@ -264,6 +268,44 @@ running on Netlify by checking `process.env.NETLIFY_BLOBS_CONTEXT` — **not**
 `undefined` again once the function is actually running live. Getting this
 backwards was the root cause of two real bugs fixed during this project's
 QA pass (see section 11).
+
+---
+
+## 8a. Match reports and player highlights
+
+Two features that build on top of the tracker sync above:
+
+**Full match reports.** cobegbd.com's own match page (e.g.
+`cobegbd.com/match/?id=59092`) shows a much richer breakdown than the club
+page ever does — a 1-vs-1 stat comparison for every player who took part,
+aggregate team stats, and the Man of the Match. `lib/matchReportSync.ts`
+scrapes and caches this (in the `MatchReport` table) so the site can show
+the same detail at `/matches/report/[cobegMatchId]`, linked from a "View
+Full Report" button on the Matches page for any match that has one.
+
+The catch: the tracker only ever exposes a match's own numeric report-page
+id from the club's **Fixtures** tab, while that match is still upcoming —
+once it's played and moves to the completed-results list, the id
+disappears from the club page entirely. `lib/trackerSync.ts` captures the
+id the moment a fixture is first seen, and carries it forward (matched by
+opponent + date, since every sync fully replaces the `Match` table) once
+that match completes, at which point its full report is fetched once and
+cached forever. **This means full reports are only ever available for
+matches from the point this feature shipped onward** — there is no
+reliable way to recover the id for a match that was already completed
+before then, so older matches simply never get a "View Full Report" link.
+This was a deliberate, discussed trade-off in favor of not guessing at data
+that can't be confirmed accurate.
+
+**Player highlights.** From `/admin/highlights`, the admin can upload a
+photo to any player's profile page — a screenshot of a great moment —
+optionally tagged to one of that player's completed matches (opponent,
+date, score, and competition are captured at upload time). These show up
+in a "Match Highlights" gallery near the bottom of that player's public
+profile page, with a lightbox viewer. Stored in the `PlayerHighlight`
+table, keyed by the player's stable in-game ID rather than their database
+row id — matches, the same reasoning `PlayerStatSnapshot` already relies on
+(see section 4), since a sync fully replaces `Player` rows on every run.
 
 ---
 
@@ -389,7 +431,8 @@ in one step. Visit `http://localhost:3000` for the public site and
 | `sync-with-tracker.bat` | Manually pull the latest tracker data right now |
 | `update-real-data.bat` | Re-apply real club info, matches, and fixtures |
 | `update-roster.bat` | Load in the full real 25-player roster |
-| `update-database-schema.bat` | Recreate the database schema (non-destructive) |
+| `update-database-schema.bat` | Update the LOCAL database schema (non-destructive) |
+| `scripts/update-netlify-database-schema.bat` | Update the LIVE (Netlify) database schema only — never touches the admin login, unlike `scripts/setup-netlify-database.bat` |
 | `clean-and-retry.bat` | Full `node_modules` wipe-and-reinstall, for stuck installs |
 | `github-push.bat` | Commit and push the current state to GitHub |
 

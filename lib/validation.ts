@@ -70,6 +70,17 @@ export const galleryImageSchema = z.object({
   caption: z.string().trim().max(300).optional().nullable(),
 });
 
+export const playerHighlightSchema = z.object({
+  inGameId: z.string().trim().min(1).max(100),
+  playerName: z.string().trim().min(1).max(100),
+  imageUrl: z.string().trim().min(1).max(500),
+  caption: z.string().trim().max(300).optional().nullable(),
+  matchOpponent: z.string().trim().max(100).optional().nullable(),
+  matchDate: z.coerce.date().optional().nullable(),
+  matchScore: z.string().trim().max(20).optional().nullable(),
+  matchCompetition: z.string().trim().max(100).optional().nullable(),
+});
+
 export const clubInfoSchema = z.object({
   clubName: z.string().trim().min(1).max(150),
   tagline: z.string().trim().max(200).optional().nullable(),

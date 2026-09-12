@@ -1,6 +1,7 @@
 import { getTranslations, getFormatter, unstable_setRequestLocale } from 'next-intl/server';
 import { matchResultForUs } from '@/lib/utils';
-import { listUpcomingMatches, listCompletedMatches } from '@/lib/services/matchService';
+import { listUpcomingMatches, listCompletedMatches, listReportedMatchIds } from '@/lib/services/matchService';
+import { Link } from '@/lib/navigation';
 import SectionHeading from '@/components/SectionHeading';
 import WinLossBadge from '@/components/WinLossBadge';
 import ScrollToHash from '@/components/ScrollToHash';
@@ -12,7 +13,11 @@ export default async function MatchesPage({ params: { locale } }: { params: { lo
   const t = await getTranslations('matches');
   const format = await getFormatter();
 
-  const [upcoming, results] = await Promise.all([listUpcomingMatches(), listCompletedMatches()]);
+  const [upcoming, results, reportedIds] = await Promise.all([
+    listUpcomingMatches(),
+    listCompletedMatches(),
+    listReportedMatchIds(),
+  ]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
@@ -64,8 +69,18 @@ export default async function MatchesPage({ params: { locale } }: { params: { lo
                     </div>
                     {m.notes && <div className="mt-0.5 text-[11px] italic text-gold-100/30">{m.notes}</div>}
                   </div>
-                  <div className="font-display text-xl font-bold text-gold-200">
-                    {m.ourScore} – {m.opponentScore}
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="font-display text-xl font-bold text-gold-200">
+                      {m.ourScore} – {m.opponentScore}
+                    </div>
+                    {m.cobegMatchId != null && reportedIds.has(m.cobegMatchId) && (
+                      <Link
+                        href={`/matches/report/${m.cobegMatchId}`}
+                        className="whitespace-nowrap text-[11px] font-semibold text-signal-teal hover:underline"
+                      >
+                        {t('viewFullReport')}
+                      </Link>
+                    )}
                   </div>
                 </div>
               );

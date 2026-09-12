@@ -3,10 +3,12 @@ import { notFound } from 'next/navigation';
 import { getTranslations, getFormatter, unstable_setRequestLocale } from 'next-intl/server';
 import { parseJsonArray, winRate } from '@/lib/utils';
 import { getPlayerByRouteParam, getPlayerStatHistory } from '@/lib/services/playerService';
+import { listHighlightsForPlayer } from '@/lib/services/highlightService';
 import PlayerPhoto from '@/components/PlayerPhoto';
 import { CareerResultDonut, CareerVsSeasonBars, StatTrendChart } from '@/components/PlayerStatsCharts';
 import BackLink from '@/components/BackLink';
 import FloatingBackLink from '@/components/FloatingBackLink';
+import HighlightsLightbox from '@/components/HighlightsLightbox';
 
 export default async function PlayerProfilePage({
   params: { locale, slug },
@@ -22,6 +24,7 @@ export default async function PlayerProfilePage({
 
   const squad = parseJsonArray(player.squadJson);
   const statHistory = await getPlayerStatHistory(player.inGameId);
+  const highlights = await listHighlightsForPlayer(player.inGameId);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
@@ -154,6 +157,27 @@ export default async function PlayerProfilePage({
           <p className="whitespace-pre-line text-sm leading-relaxed text-gold-100/70">{player.bio}</p>
         </section>
       )}
+
+      {/* Match Highlights — admin-uploaded photos, optionally tagged to a
+          specific completed match (see PlayerHighlight in prisma/schema.prisma). */}
+      <section className="card-surface mt-6 p-6">
+        <h2 className="mb-4 font-display text-lg font-bold text-gold-200">{t('matchHighlights')}</h2>
+        {highlights.length > 0 ? (
+          <HighlightsLightbox
+            highlights={highlights.map((h) => ({
+              id: h.id,
+              imageUrl: h.imageUrl,
+              caption: h.caption,
+              matchOpponent: h.matchOpponent,
+              matchDate: h.matchDate ? h.matchDate.toISOString() : null,
+              matchScore: h.matchScore,
+              matchCompetition: h.matchCompetition,
+            }))}
+          />
+        ) : (
+          <p className="text-sm text-gold-100/40">{t('noHighlights')}</p>
+        )}
+      </section>
     </div>
   );
 }

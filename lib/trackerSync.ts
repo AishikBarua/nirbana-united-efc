@@ -67,6 +67,7 @@
 import { prisma } from './db';
 import { slugify, dedupeSlug, containsBengali } from './services/playerService';
 import { createNotifications, pruneOldNotifications } from './services/notificationService';
+import { syncMatchReports } from './matchReportSync';
 
 const CLUB_ID = '250918042901790';
 const BASE = 'https://cobegbd.com/club/';
@@ -253,6 +254,11 @@ type ParsedFixture = {
   opponentSquad: 'Main' | 'Academy' | '';
   dateMs: number;
   round: string;
+  // The tracker's own numeric match id, read straight off this fixture
+  // card's own href (".../match/?id=N") — see the Match model's
+  // `cobegMatchId` field comment for why this only exists on the Fixtures
+  // tab, not the completed-results one.
+  cobegMatchId?: number;
 };
 
 /** Squad-type marker emoji the tracker puts next to a fixture's opponent —
@@ -302,6 +308,14 @@ function parseFixtures(html: string): ParsedFixture[] {
     const round = decodeEntities(firstMatch(chunk, /ovr-fixture-row-head">\s*<span>[^<]*<\/span>\s*<b>([^<]+)<\/b>/) ?? '');
     if (!dateTs) continue; // not a real fixture card (e.g. trailing script/markup after the list)
 
+    // The fixture card's own opening tag is `<a ... href="https://cobegbd.com/match/?id=N" ...>`
+    // (this function's chunk splitter already cuts right after `<a class="ovr-fixture-row`,
+    // so the href is right at the start of `chunk`) — this is the ONLY place
+    // the tracker exposes this match's id anywhere on the club page. See the
+    // Match model's `cobegMatchId` field comment.
+    const matchIdStr = firstMatch(chunk, /^[^>]*href="https:\/\/cobegbd\.com\/match\/\?id=(\d+)"/);
+    const cobegMatchId = matchIdStr ? parseInt(matchIdStr, 10) : undefined;
+
     // Each fixture has exactly two "side" blocks (home/away, order varies —
     // our own club can be on either side of any given fixture). Whichever
     // side's crest URL contains our own CLUB_ID is us; the other is the
@@ -328,6 +342,7 @@ function parseFixtures(html: string): ParsedFixture[] {
       opponentSquad: squadFromEmoji(opponent.emoji),
       dateMs: parseInt(dateTs, 10) * 1000,
       round: round || 'Match',
+      cobegMatchId,
     });
   }
 
@@ -811,6 +826,16 @@ export async function runTrackerSync(): Promise<SyncResult> {
     priorMatches.filter((m) => m.status === 'UPCOMING').map((m) => `${m.opponent}|${m.date.getTime()}`)
   );
 
+  // The tracker only ever exposes a match's own numeric id while it's still
+  // an upcoming fixture (see the Match model's `cobegMatchId` comment), so
+  // the only way a COMPLETED match ends up with one is if a previous sync
+  // captured it back when it was still UPCOMING. Since every sync replaces
+  // the whole Match table, that id has to be carried forward by hand here —
+  // looked up by the same opponent+date key used for notifications above.
+  const priorMatchIdByKey = new Map(
+    priorMatches.filter((m) => m.cobegMatchId != null).map((m) => [`${m.opponent}|${m.date.getTime()}`, m.cobegMatchId])
+  );
+
   await prisma.match.deleteMany({});
   await prisma.match.createMany({
     data: [
@@ -822,6 +847,7 @@ export async function runTrackerSync(): Promise<SyncResult> {
         status: 'COMPLETED',
         competition: m.competition,
         notes: m.opponentSquad ? `Opponent fielded their ${m.opponentSquad} squad.` : null,
+        cobegMatchId: priorMatchIdByKey.get(`${m.opponent}|${m.dateMs}`) ?? null,
       })),
       ...fixtures.map((f) => ({
         opponent: f.opponent,
@@ -831,6 +857,7 @@ export async function runTrackerSync(): Promise<SyncResult> {
         status: 'UPCOMING',
         competition: f.round,
         notes: f.opponentSquad ? `Opponent expected to field their ${f.opponentSquad} squad.` : null,
+        cobegMatchId: f.cobegMatchId ?? priorMatchIdByKey.get(`${f.opponent}|${f.dateMs}`) ?? null,
       })),
     ],
   });
@@ -952,6 +979,19 @@ export async function runTrackerSync(): Promise<SyncResult> {
       order: i,
     })),
   });
+
+  // --- Full match reports: for any COMPLETED match we now have a
+  // cobegMatchId for but no cached report yet, fetch and cache its full
+  // per-player detail page (see lib/matchReportSync.ts). Deliberately its
+  // own try/catch, separate from everything above — a single unreachable or
+  // oddly-formatted match report should never fail the entire sync (all the
+  // roster/match/standings data above has already been safely written by
+  // this point regardless of what happens here). --------------------------
+  try {
+    await syncMatchReports();
+  } catch (err) {
+    console.error('Match report sync failed (core sync data was already saved fine):', err);
+  }
 
   return {
     ok: true,

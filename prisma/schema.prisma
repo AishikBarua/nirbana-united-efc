@@ -105,8 +105,55 @@ model Match {
   status         String   @default("UPCOMING") // "UPCOMING" | "COMPLETED"
   competition    String? // e.g. "Friendly", "Weekly League", "Cup Match"
   notes          String?
+  // The tracker's own numeric match id (from its Fixtures tab, e.g.
+  // ".../match/?id=59219") — only ever visible on the tracker while a match
+  // is still upcoming, so this is captured then and carried forward by
+  // trackerSync.ts (matched on opponent+date) once the match is completed
+  // and the tracker's own results list no longer shows the link. Null for
+  // any match whose fixture was never seen by a sync while still upcoming
+  // (in practice: every match from before this feature existed) — there is
+  // no way to recover the id for those after the fact, so they simply never
+  // get a full match report. See lib/matchReportSync.ts.
+  cobegMatchId   Int?     @unique
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+// A cached copy of one match's full detail-page scrape (per-player stats,
+// aggregate team stats, Man of the Match) from the tracker's own
+// ".../match/?id=N" page — see lib/matchReportSync.ts. Keyed by the
+// tracker's own match id (not Match.id, which is regenerated every sync)
+// so the cache survives every future re-sync untouched. Fetched once, right
+// after a match's Match row first turns COMPLETED with a known
+// cobegMatchId, and never re-fetched afterwards — a finished match's stats
+// don't change on the tracker.
+model MatchReport {
+  cobegMatchId Int      @id
+  dataJson     String // the full parsed MatchReportData shape, JSON-encoded
+  fetchedAt    DateTime @default(now())
+}
+
+// One admin-uploaded "highlight" photo for a single player — a screenshot
+// of a great moment, tagged (optionally) to a specific match. Keyed by
+// `inGameId`, not a Player relation: every sync deletes and recreates every
+// Player row (see trackerSync.ts), so a real foreign key would break on the
+// very next sync — same reasoning as PlayerStatSnapshot above. The match
+// tag is fully denormalized (opponent/date/score/competition as of upload
+// time) rather than a Match relation, for the same reason — Match rows are
+// also fully replaced on every sync.
+model PlayerHighlight {
+  id               String   @id @default(cuid())
+  inGameId         String
+  playerName       String // denormalized for admin convenience/debugging only
+  imageUrl         String
+  caption          String?
+  matchOpponent    String? // set only when the admin tagged this to a specific match
+  matchDate        DateTime?
+  matchScore       String? // e.g. "5-1", denormalized at upload time
+  matchCompetition String?
+  uploadedDate     DateTime @default(now())
+
+  @@index([inGameId])
 }
 
 model News {

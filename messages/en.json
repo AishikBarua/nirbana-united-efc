@@ -104,7 +104,9 @@
     "notFound": "Player not found.",
     "resultBreakdown": "Career Results",
     "careerVsSeason": "Career vs This Season",
-    "statsTrend": "Stats Over Time"
+    "statsTrend": "Stats Over Time",
+    "matchHighlights": "Match Highlights",
+    "noHighlights": "No highlights uploaded yet."
   },
   "matches": {
     "title": "Matches",
@@ -130,7 +132,18 @@
     "opponent": "Opponent",
     "resultBreakdown": "Result Breakdown",
     "recentForm": "Recent Form",
-    "goalsTrend": "Goals For vs Against Over Time"
+    "goalsTrend": "Goals For vs Against Over Time",
+    "viewFullReport": "View Full Report"
+  },
+  "matchReport": {
+    "backToMatches": "Back to Matches",
+    "notFound": "This match report isn't available.",
+    "notFoundBody": "Full match reports are only captured for matches from a certain point onward — this one may be from before that, or hasn't synced yet.",
+    "round": "Round",
+    "teamStats": "Team Stats",
+    "playerComparisons": "Player Comparisons",
+    "manOfTheMatch": "Man of the Match",
+    "benchPlayer": "No detailed stats for this pairing."
   },
   "transfers": {
     "eyebrow": "Squad Movement",
@@ -201,6 +214,7 @@
       "manageNews": "Manage News",
       "manageStandings": "Manage Standings",
       "manageGallery": "Manage Gallery",
+      "manageHighlights": "Manage Highlights",
       "manageClub": "Edit Club Info",
       "viewSite": "View Public Site",
       "sync": {
@@ -283,6 +297,17 @@
       "upload": "Upload Image",
       "caption": "Caption",
       "chooseFile": "Choose File"
+    },
+    "highlights": {
+      "title": "Player Highlights",
+      "subtitle": "Upload a photo to a player's profile page, optionally tagged to one of their completed matches.",
+      "player": "Player",
+      "taggedMatch": "Tag to Match",
+      "noMatchTag": "No specific match",
+      "upload": "Upload Image",
+      "caption": "Caption",
+      "missingFields": "Please choose a player and an image.",
+      "noHighlights": "No highlights uploaded yet."
     },
     "club": {
       "title": "Club Info",
