@@ -268,7 +268,9 @@
       "upcoming": "Upcoming",
       "completed": "Completed",
       "competition": "Competition",
-      "notes": "Notes"
+      "notes": "Notes",
+      "reportLink": "Tracker Match Report Link (optional)",
+      "reportLinkHint": "Paste the match's own link from cobegbd.com (or just its id number) to show a full player-by-player report for it on the public Matches page — works for past matches too, not just new ones. Leave blank if you don't have it."
     },
     "news": {
       "title": "News",

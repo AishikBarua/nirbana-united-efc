@@ -24,6 +24,14 @@ export default function MatchForm({ match }: { match?: Match }) {
     opponentScore: match?.opponentScore ?? '',
     competition: match?.competition || '',
     notes: match?.notes || '',
+    // Pre-filled with the current numeric id (if one was set — either
+    // captured automatically while this match was still an upcoming
+    // fixture, or pasted in here by hand) so a normal save that doesn't
+    // touch this field round-trips it unchanged instead of accidentally
+    // clearing it. Free-form text: the field also accepts a full tracker
+    // match link (e.g. https://cobegbd.com/match/?id=59198) — see the
+    // cobegMatchId transform in lib/validation.ts.
+    cobegMatchId: match?.cobegMatchId ? String(match.cobegMatchId) : '',
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -97,6 +105,17 @@ export default function MatchForm({ match }: { match?: Match }) {
       <div>
         <label className="label-field">{t('notes')}</label>
         <textarea rows={3} className="input-field" value={form.notes} onChange={(e) => set('notes', e.target.value)} />
+      </div>
+
+      <div>
+        <label className="label-field">{t('reportLink')}</label>
+        <input
+          className="input-field"
+          value={form.cobegMatchId}
+          onChange={(e) => set('cobegMatchId', e.target.value)}
+          placeholder="https://cobegbd.com/match/?id=59198"
+        />
+        <p className="mt-1 text-xs text-gold-100/40">{t('reportLinkHint')}</p>
       </div>
 
       {error && <p className="text-sm text-signal-red">{error}</p>}

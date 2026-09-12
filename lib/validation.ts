@@ -38,6 +38,31 @@ export const matchSchema = z.object({
   status: z.enum(['UPCOMING', 'COMPLETED']),
   competition: z.string().trim().max(100).optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
+  // Admin-pasted tracker match-report link/id (e.g.
+  // "https://cobegbd.com/match/?id=59198", or just "59198") — lets an admin
+  // manually attach a full match report to ANY match, including one that
+  // completed before this feature existed (the automatic capture in
+  // trackerSync.ts only ever sees a match's id while it's still an upcoming
+  // fixture — see the Match model's `cobegMatchId` comment). Accepts either
+  // a full tracker URL or a bare number; anything else is treated as "not
+  // provided" rather than rejecting the whole match save over one optional
+  // field. Once saved, the next tracker sync (automatic or the dashboard
+  // button) fetches and caches the full report for it, same as an
+  // automatically-captured one — see lib/matchReportSync.ts.
+  cobegMatchId: z
+    .string()
+    .trim()
+    .max(300)
+    .optional()
+    .nullable()
+    .transform((val) => {
+      if (!val) return null;
+      const idParam = /[?&]id=(\d+)/.exec(val);
+      if (idParam) return parseInt(idParam[1], 10);
+      const bareNumber = /^\d+$/.exec(val);
+      if (bareNumber) return parseInt(val, 10);
+      return null;
+    }),
 });
 
 export const newsSchema = z.object({

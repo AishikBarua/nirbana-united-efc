@@ -293,9 +293,21 @@ that match completes, at which point its full report is fetched once and
 cached forever. **This means full reports are only ever available for
 matches from the point this feature shipped onward** — there is no
 reliable way to recover the id for a match that was already completed
-before then, so older matches simply never get a "View Full Report" link.
-This was a deliberate, discussed trade-off in favor of not guessing at data
-that can't be confirmed accurate.
+before then, so older matches simply never get a "View Full Report" link
+automatically. This was a deliberate, discussed trade-off in favor of not
+guessing at data that can't be confirmed accurate.
+
+**Manual backfill for older matches.** Editing any match from
+`/admin/matches` now has an optional "Tracker Match Report Link" field —
+paste in that match's own link from cobegbd.com (or just its id number) and
+save. This works for a match from any point in the past, not just new
+ones, since the admin is supplying a confirmed real id rather than the site
+guessing one. The next sync (automatic or the dashboard button) fetches and
+caches its report exactly the same way as an automatically-captured one —
+`lib/matchReportSync.ts`'s `syncMatchReports()` doesn't care how a match got
+its `cobegMatchId`, only that it has one. Leaving the field blank on an
+unrelated edit (fixing a score, adding notes) never clears a previously-set
+id — the form always round-trips whatever value is already there.
 
 **Player highlights.** From `/admin/highlights`, the admin can upload a
 photo to any player's profile page — a screenshot of a great moment —
