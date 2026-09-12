@@ -20,13 +20,18 @@ export type SaveImageResult = { ok: true; url: string } | { ok: false; error: st
  * Two different storage backends depending on where this is running:
  *   - Local dev (your PC, `npm run dev`): writes to /public/uploads on disk,
  *     exactly as before — nothing about your local workflow changes.
- *   - Netlify (process.env.NETLIFY is set automatically there, at both
- *     build and runtime): writes to Netlify Blobs instead, since Netlify's
- *     filesystem is ephemeral — a file written to /public during one
- *     request is gone by the next. The image is served back by
- *     app/api/blob/[key]/route.ts.
- * Every caller only ever deals with the returned `url` string, so nothing
- * outside this function needs to know or care which backend was used.
+ *   - Netlify: writes to Netlify Blobs instead, since Netlify's deployed
+ *     function filesystem is both ephemeral AND read-only (a write there
+ *     throws EROFS) — the image is served back by app/api/blob/[key]/route.ts.
+ *
+ *     Detected via process.env.NETLIFY_BLOBS_CONTEXT rather than
+ *     process.env.NETLIFY: NETLIFY is only set during Netlify's *build* step,
+ *     not in the deployed function at request time, so checking it here
+ *     always took this local-disk branch in production and crashed with
+ *     EROFS on every upload. NETLIFY_BLOBS_CONTEXT is the variable Netlify
+ *     actually injects into the live function so @netlify/blobs' getStore()
+ *     can auto-configure itself — its presence is what really distinguishes
+ *     "running deployed on Netlify" from local dev.
  */
 export async function saveUploadedImage(file: File): Promise<SaveImageResult> {
   if (!ALLOWED_TYPES.has(file.type)) {
@@ -40,7 +45,7 @@ export async function saveUploadedImage(file: File): Promise<SaveImageResult> {
   const ext = EXT_BY_TYPE[file.type];
   const filename = `${crypto.randomUUID()}.${ext}`;
 
-  if (process.env.NETLIFY) {
+  if (process.env.NETLIFY_BLOBS_CONTEXT) {
     // Dynamically imported so local `npm run dev` never needs this package
     // installed — this branch is only ever reached on Netlify, where
     // package.json's dependency is always freshly installed at build time.

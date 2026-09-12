@@ -226,8 +226,8 @@ automatically by the code (nothing to toggle by hand):
 | Hourly tracker sync | A timer inside the running server (`lib/autoSync.ts`) | A Netlify Scheduled Function (`netlify/functions/hourly-sync.mts`) |
 
 The code detects which environment it's running in automatically
-(Netlify sets `process.env.NETLIFY` on its own) — you never set that
-yourself.
+(Netlify injects its own environment variables into every deployed
+function) — you never set anything yourself for this to work.
 
 ### One-time setup
 

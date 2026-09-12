@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 // replaces lib/autoSync.ts's in-process setInterval on Netlify, since a
 // serverless function's process doesn't stay alive to run a timer (see
 // instrumentation.ts, which skips starting that timer specifically when
-// process.env.NETLIFY is set, so the two mechanisms never run in parallel
+// running deployed on Netlify, so the two mechanisms never run in parallel
 // and double-hit the tracker).
 //
 // This route is intentionally NOT admin-session-protected (the scheduled
