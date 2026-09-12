@@ -7,16 +7,21 @@
  * a full 1-vs-1 stat breakdown for every player on both sides, aggregate
  * team stats, and the Man of the Match.
  *
- * Why this only covers SOME matches: the tracker only ever links to a
- * match's own report page from the club's Fixtures tab, while that match is
- * still upcoming — once it's played and moves into the completed-results
- * list, the club page stops linking to it (confirmed by inspecting both
- * tabs' live markup directly). trackerSync.ts captures that id the moment a
- * fixture appears (see its `cobegMatchId` handling) and carries it forward
- * once the match completes. A match whose fixture was never seen while
- * still upcoming (i.e. anything from before this feature existed) simply
- * has no id and never gets a report — there is no reliable way to recover
- * one after the fact.
+ * Why this doesn't cover EVERY match: trackerSync.ts reads a match's own
+ * report id off whichever of the club page's two tabs currently shows that
+ * match — the Fixtures tab's own `<a href>` while it's upcoming, or (once
+ * it's completed) an `onclick="location.href='...'"` handler on that
+ * round's card in the Rounds tab, which is easy to miss since it isn't a
+ * plain link. Either way trackerSync.ts carries the id forward across every
+ * future sync once it has it (see its `cobegMatchId` handling), since every
+ * sync fully replaces the Match table. The one real gap: the Rounds tab
+ * only ever shows a limited recent window of completed matches (its own
+ * "All (N)" filter caps out), so a match old enough to have scrolled out of
+ * that window — and that was also never seen while it was still an
+ * upcoming fixture — has no automatic way to get an id. An admin can still
+ * paste one in by hand from `/admin/matches` (see the `cobegMatchId` field
+ * on `matchSchema` in lib/validation.ts) for any match whose own page they
+ * can still find on cobegbd.com.
  *
  * A handful of small string-extraction helpers below are intentionally
  * duplicated from trackerSync.ts rather than imported from it — they're
@@ -155,7 +160,10 @@ function parseHeader(html: string): {
     teams.push({
       clubId: clubIdMatch ? clubIdMatch[1] : '',
       name: decodeEntities(firstMatch(block, /prem-name">([^<]+)<\/div>/) ?? ''),
-      crest: firstMatch(block, /data-src="([^"]+)"/),
+      // A plain `<img src="...">`, not a lazy-loaded `data-src` — confirmed
+      // against the live page (an earlier version of this code assumed
+      // `data-src` and silently got no crest at all for every match).
+      crest: firstMatch(block, /<img src="([^"]+)"/),
     });
   }
   if (teams.length !== 2) {
@@ -185,7 +193,14 @@ function parsePlayerCards(html: string): PlayerCard[] {
   // follows it in the markup — that dialog re-renders its own copy of a
   // player-card-shaped preview, which would otherwise risk being picked up
   // as extra, bogus chunks.
-  const startIdx = html.indexOf('cobeg-match-page');
+  //
+  // IMPORTANT: this must be the literal opening tag of the container DIV,
+  // not just the bare class name — the page also has a `<style>` block
+  // earlier that defines `#cobeg-match-page { ... }` and repeats that same
+  // text dozens of times, so a bare `indexOf('cobeg-match-page')` locks
+  // onto the CSS instead of the real content and finds zero cards. Confirmed
+  // live against a real match page.
+  const startIdx = html.indexOf('<div class="cobeg-match-page">');
   const endIdx = html.indexOf('screenshot-dialog', startIdx);
   if (startIdx === -1) return []; // page layout changed too much to trust — return nothing rather than guess
   const scoped = endIdx === -1 ? html.slice(startIdx) : html.slice(startIdx, endIdx);
@@ -201,15 +216,21 @@ function parsePlayerCards(html: string): PlayerCard[] {
     // to exactly this one card by the split above) rather than via a
     // "block" sub-string first — that way a card missing some later section
     // still yields whatever it does have instead of being skipped entirely.
+    //
+    // Every tag boundary below allows `\s*` — the real page has newlines and
+    // indentation between tags (e.g. `</div>\n  </div>\n\n  <div ...`), so a
+    // regex assuming tags sit hard against each other (no whitespace) silently
+    // matches nothing. Confirmed live against a real match page, where the
+    // stricter version below returned an empty name/score for every card.
     const homePlayerRank = firstMatch(chunk, /player-rank">([^<]+)</);
     const homePlayerName = decodeEntities(
-      firstMatch(chunk, /<div class="pname">([^<]+)<\/div><\/div><div class="match-score-text">/) ?? ''
+      firstMatch(chunk, /<div class="pname">([^<]+)<\/div>\s*<\/div>\s*<div class="match-score-text">/) ?? ''
     );
     const scoreBlock =
-      firstMatch(chunk, /<div class="match-score-text">([\s\S]*?)<\/div><div class="player-side p-right">/) ?? '';
+      firstMatch(chunk, /<div class="match-score-text">([\s\S]*?)<\/div>\s*<div class="player-side p-right">/) ?? '';
     const scoreNums = [...scoreBlock.matchAll(/<span>(\d+)<\/span>/g)].map((m) => parseInt(m[1], 10));
     const awayPlayerName = decodeEntities(
-      firstMatch(chunk, /<div class="player-side p-right"><div class="pname">([^<]+)<\/div>/) ?? ''
+      firstMatch(chunk, /<div class="player-side p-right">\s*<div class="pname">([^<]+)<\/div>/) ?? ''
     );
     if (!homePlayerName || !awayPlayerName) continue; // can't reliably tell who's playing whom — skip rather than guess
 

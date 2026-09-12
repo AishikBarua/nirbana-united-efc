@@ -216,6 +216,20 @@ type ParsedMatch = {
   result: 'W' | 'D' | 'L';
   competition: string;
   group: string;
+  // The tracker's own numeric match-report id for this COMPLETED match,
+  // read straight off this round card's own `onclick="location.href='
+  // https://cobegbd.com/match/?id=N'"` handler — NOT a plain `<a href>`,
+  // which is why an earlier pass at this (see the Match model's
+  // `cobegMatchId` field comment, and lib/matchReportSync.ts's header
+  // comment) concluded the id "disappears" once a match leaves the
+  // Fixtures tab. It doesn't — it just moves to this onclick attribute
+  // instead. Confirmed live: every one of the tracker's current Rounds-tab
+  // cards carries this. The tracker only ever shows a limited recent
+  // window of rounds though (its own "All (N)" filter caps out), so a
+  // match old enough to have scrolled out of that window still won't have
+  // one here — trackerSync.ts falls back to whatever id (auto-captured
+  // earlier, or pasted in by an admin) that match already had.
+  cobegMatchId?: number;
 };
 
 function parseRounds(html: string): ParsedMatch[] {
@@ -234,6 +248,7 @@ function parseRounds(html: string): ParsedMatch[] {
     if (!dateTs || !scoreGoals || !resultClass || !opponent) continue; // skip anything we can't fully read
     const [ourScoreStr, opponentScoreStr] = scoreGoals.split(/[–-]/).map((s) => s.trim());
     const result = resultClass.toUpperCase() as 'W' | 'D' | 'L';
+    const cobegMatchIdStr = firstMatch(chunk, /onclick="location\.href='https:\/\/cobegbd\.com\/match\/\?id=(\d+)'/);
     matches.push({
       opponent,
       opponentSquad,
@@ -244,6 +259,7 @@ function parseRounds(html: string): ParsedMatch[] {
       result,
       competition: competition || 'Match',
       group,
+      cobegMatchId: cobegMatchIdStr ? parseInt(cobegMatchIdStr, 10) : undefined,
     });
   }
   return matches;
@@ -847,7 +863,11 @@ export async function runTrackerSync(): Promise<SyncResult> {
         status: 'COMPLETED',
         competition: m.competition,
         notes: m.opponentSquad ? `Opponent fielded their ${m.opponentSquad} squad.` : null,
-        cobegMatchId: priorMatchIdByKey.get(`${m.opponent}|${m.dateMs}`) ?? null,
+        // Prefer whatever the Rounds tab itself shows right now (freshest,
+        // and covers old matches too as long as they're still in its
+        // window) — fall back to a previously-known id (auto-captured
+        // while upcoming, or pasted in by an admin) for one that's aged out.
+        cobegMatchId: m.cobegMatchId ?? priorMatchIdByKey.get(`${m.opponent}|${m.dateMs}`) ?? null,
       })),
       ...fixtures.map((f) => ({
         opponent: f.opponent,

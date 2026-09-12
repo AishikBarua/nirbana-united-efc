@@ -283,27 +283,30 @@ scrapes and caches this (in the `MatchReport` table) so the site can show
 the same detail at `/matches/report/[cobegMatchId]`, linked from a "View
 Full Report" button on the Matches page for any match that has one.
 
-The catch: the tracker only ever exposes a match's own numeric report-page
-id from the club's **Fixtures** tab, while that match is still upcoming —
-once it's played and moves to the completed-results list, the id
-disappears from the club page entirely. `lib/trackerSync.ts` captures the
-id the moment a fixture is first seen, and carries it forward (matched by
-opponent + date, since every sync fully replaces the `Match` table) once
-that match completes, at which point its full report is fetched once and
-cached forever. **This means full reports are only ever available for
-matches from the point this feature shipped onward** — there is no
-reliable way to recover the id for a match that was already completed
-before then, so older matches simply never get a "View Full Report" link
-automatically. This was a deliberate, discussed trade-off in favor of not
-guessing at data that can't be confirmed accurate.
+How the id is captured: `lib/trackerSync.ts` reads a match's own numeric
+report-page id off whichever of the club page's two tabs currently shows
+that match — the **Fixtures** tab's own `<a href>` while it's still
+upcoming, or (once it's played) an `onclick="location.href='...'"` handler
+on that match's card in the **Rounds** tab, which isn't a plain link and is
+easy to miss. Either way, once captured the id is carried forward across
+every future sync (matched by opponent + date, since every sync fully
+replaces the `Match` table), and its full report is fetched once and
+cached forever the moment the match is COMPLETED with a known id.
 
-**Manual backfill for older matches.** Editing any match from
-`/admin/matches` now has an optional "Tracker Match Report Link" field —
-paste in that match's own link from cobegbd.com (or just its id number) and
-save. This works for a match from any point in the past, not just new
-ones, since the admin is supplying a confirmed real id rather than the site
-guessing one. The next sync (automatic or the dashboard button) fetches and
-caches its report exactly the same way as an automatically-captured one —
+The one gap: the Rounds tab only ever shows a limited recent window of
+completed matches (its own "All (N)" filter on the tracker caps out), so a
+match old enough to have scrolled out of that window — and that was also
+never seen while it was still an upcoming fixture — has no automatic way to
+get an id. This was a deliberate trade-off in favor of not guessing at data
+that can't be confirmed accurate, rather than making up an id.
+
+**Manual backfill for anything the automatic capture misses.** Editing any
+match from `/admin/matches` has an optional "Tracker Match Report Link"
+field — paste in that match's own link from cobegbd.com (or just its id
+number) and save. This works for a match from any point in the past, since
+the admin is supplying a confirmed real id rather than the site guessing
+one. The next sync (automatic or the dashboard button) fetches and caches
+its report exactly the same way as an automatically-captured one —
 `lib/matchReportSync.ts`'s `syncMatchReports()` doesn't care how a match got
 its `cobegMatchId`, only that it has one. Leaving the field blank on an
 unrelated edit (fixing a score, adding notes) never clears a previously-set

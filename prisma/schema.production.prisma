@@ -105,15 +105,22 @@ model Match {
   status         String   @default("UPCOMING") // "UPCOMING" | "COMPLETED"
   competition    String? // e.g. "Friendly", "Weekly League", "Cup Match"
   notes          String?
-  // The tracker's own numeric match id (from its Fixtures tab, e.g.
-  // ".../match/?id=59219") — only ever visible on the tracker while a match
-  // is still upcoming, so this is captured then and carried forward by
-  // trackerSync.ts (matched on opponent+date) once the match is completed
-  // and the tracker's own results list no longer shows the link. Null for
-  // any match whose fixture was never seen by a sync while still upcoming
-  // (in practice: every match from before this feature existed) — there is
-  // no way to recover the id for those after the fact, so they simply never
-  // get a full match report. See lib/matchReportSync.ts.
+  // The tracker's own numeric match-report id (".../match/?id=59219").
+  // trackerSync.ts reads this straight off whichever of the tracker's two
+  // tabs currently shows the match: the Fixtures tab (a fixture's own
+  // `<a href>`) while it's still upcoming, or the Rounds tab (an
+  // `onclick="location.href='...'"` on that round's card, not a plain
+  // `<a href>` — easy to miss) once it's completed. Either way it's
+  // carried forward here so a re-sync never loses it, since every sync
+  // fully replaces this table (matched on opponent+date — see
+  // trackerSync.ts). The Rounds tab only ever shows a limited recent
+  // window of completed matches, though (its own "All (N)" filter caps
+  // out) — a match old enough to have scrolled out of that window, and
+  // that was also never seen while upcoming, has no automatic way to get
+  // one. An admin can still paste one in by hand from `/admin/matches` if
+  // they can find that match's own link on cobegbd.com (see the
+  // `cobegMatchId` field in lib/validation.ts's matchSchema) — see
+  // lib/matchReportSync.ts.
   cobegMatchId   Int?     @unique
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

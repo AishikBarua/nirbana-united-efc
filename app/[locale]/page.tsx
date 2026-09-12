@@ -53,6 +53,19 @@ export default async function HomePage({ params: { locale } }: { params: { local
             <Link href="/players" className="btn-primary">{t('heroCta')}</Link>
             <Link href="/matches" className="btn-secondary">{t('heroSecondaryCta')}</Link>
           </div>
+          <div className="flex justify-center animate-rise">
+            {/* External, not a site route — plain <a>, not the locale-aware
+                Link component, and opened in a new tab so registering on
+                the tracker never navigates a visitor away from this site. */}
+            <a
+              href="https://cobegbd.com/registration/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary"
+            >
+              {t('heroRegisterCta')}
+            </a>
+          </div>
         </div>
       </section>
 
