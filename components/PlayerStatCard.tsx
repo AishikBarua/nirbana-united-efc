@@ -169,20 +169,24 @@ function CardFace({
     >
       {/* Photo */}
       {data.photoUrl ? (
-        // Plain <img>, not next/image — html2canvas needs a direct,
-        // already-loaded <img> element to rasterize; next/image's
-        // proxy/srcset indirection isn't necessary here since this is
-        // always rendered at a fixed pixel size anyway.
-        <img
-          src={data.photoUrl}
-          alt={data.name}
+        // A background-image div, NOT an <img style="object-fit: cover">.
+        // html2canvas does not support the CSS `object-fit` property (a
+        // known, long-standing limitation) — it was rendering the raw photo
+        // stretched to fill the whole box instead of cropped like the
+        // on-screen preview, which visually swallowed the name text sitting
+        // just below it. `background-size: cover` IS handled correctly by
+        // html2canvas, so it's used here instead to keep the download
+        // pixel-identical to the preview.
+        <div
+          role="img"
+          aria-label={data.name}
           style={{
             position: 'absolute',
             inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: '50% 32%',
+            backgroundImage: `url(${data.photoUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: '50% 32%',
+            backgroundRepeat: 'no-repeat',
           }}
         />
       ) : (
@@ -294,7 +298,20 @@ function CardFace({
           border: `${px(4)}px solid ${GOLD_400}`,
         }}
       >
-        <img src={data.crestUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {/* Same background-image fix as the player photo above — html2canvas
+            ignores `object-fit`, so `background-size: cover` is used instead. */}
+        <div
+          role="img"
+          aria-label=""
+          style={{
+            width: '100%',
+            height: '100%',
+            backgroundImage: `url(${data.crestUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
       </div>
       <div style={{ position: 'absolute', left: px(130), top: px(38), color: GOLD_100, fontWeight: 700, fontSize: px(26), whiteSpace: 'nowrap' }}>
         NIRBANA UNITED
@@ -426,6 +443,14 @@ export default function PlayerStatCard(data: PlayerStatCardData) {
     if (!exportRef.current) return;
     setDownloading(true);
     try {
+      // Make sure the display font (Cinzel, used for the player's name) has
+      // actually finished loading before html2canvas snapshots the DOM —
+      // otherwise a slow/late font swap can leave the name rendered in an
+      // invisible or zero-width fallback state in the captured PNG even
+      // though it looks fine a moment later on screen.
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        await document.fonts.ready;
+      }
       const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(exportRef.current, {
         backgroundColor: null,
