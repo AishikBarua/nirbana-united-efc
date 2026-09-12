@@ -383,11 +383,11 @@ function CardFace({
       <div style={{ position: 'absolute', left: px(56), top: px(1256), display: 'flex', alignItems: 'center', gap: px(10) }}>
         <CrownIcon size={px(26)} color={GOLD_300} />
         <span style={{ color: GOLD_200, fontWeight: 700, fontSize: px(21), whiteSpace: 'nowrap' }}>
-          {tc('motm')} &times; {data.motmCount}
+          {t('motm')} &times; {data.motmCount}
         </span>
       </div>
       <div style={{ position: 'absolute', right: px(56), top: px(1262), color: 'rgba(245,230,194,0.45)', fontSize: px(14), fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-        {tc('motmTag')}
+        {t('motmTag')}
       </div>
 
       {/* Footer */}
