@@ -117,6 +117,32 @@ export const trackVisitSchema = z.object({
   referrer: z.string().trim().max(500).optional().nullable(),
 });
 
+export const tournamentSchema = z.object({
+  name: z.string().trim().min(1).max(150),
+  description: z.string().trim().max(3000).optional().nullable(),
+  // A shared passcode, not a per-person one-time code — see the
+  // Tournament model's own comment for why. Kept short-ish since an admin
+  // will be reading it out loud / retyping it into a chat group.
+  accessCode: z.string().trim().min(4).max(50),
+  registrationDeadline: z.coerce.date().optional().nullable(),
+  startDate: z.coerce.date().optional().nullable(),
+});
+
+// Status transitions are validated by tournamentService, not zod (the set
+// of allowed next-statuses depends on the tournament's current status).
+export const tournamentStatusSchema = z.object({
+  status: z.enum(['REGISTRATION_OPEN', 'REGISTRATION_CLOSED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']),
+});
+
+// The public, unauthenticated registration form's payload — deliberately
+// tiny. `playerId` is looked up server-side against the CURRENT roster
+// (never trust a client-supplied name/inGameId directly), and `accessCode`
+// is compared against the tournament's own code.
+export const tournamentRegistrationSchema = z.object({
+  playerId: z.string().trim().min(1).max(100),
+  accessCode: z.string().trim().min(1).max(50),
+});
+
 export const clubInfoSchema = z.object({
   clubName: z.string().trim().min(1).max(150),
   tagline: z.string().trim().max(200).optional().nullable(),

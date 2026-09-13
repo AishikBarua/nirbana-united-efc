@@ -9,6 +9,7 @@ export default async function AdminNav() {
     { href: '/admin/dashboard', label: t('title') },
     { href: '/admin/players', label: t('managePlayers') },
     { href: '/admin/matches', label: t('manageMatches') },
+    { href: '/admin/tournaments', label: t('manageTournaments') },
     { href: '/admin/news', label: t('manageNews') },
     { href: '/admin/standings', label: t('manageStandings') },
     { href: '/admin/gallery', label: t('manageGallery') },

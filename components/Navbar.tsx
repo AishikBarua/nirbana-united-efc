@@ -30,6 +30,7 @@ const MENU_GROUPS = [
     group: 'groupCompetition',
     items: [
       { href: '/matches', key: 'matches', icon: 'ball' },
+      { href: '/tournaments', key: 'tournaments', icon: 'trophy' },
       { href: '/transfers', key: 'transfers', icon: 'swap' },
       { href: '/rankings', key: 'rankings', icon: 'trophy' },
       { href: '/standings', key: 'standings', icon: 'table' },

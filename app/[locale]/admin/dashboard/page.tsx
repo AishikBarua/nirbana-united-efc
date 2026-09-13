@@ -16,6 +16,7 @@ export default async function AdminDashboardPage({ params: { locale } }: { param
   const cards: { href: string; label: string; badge?: number }[] = [
     { href: '/admin/players', label: t('managePlayers') },
     { href: '/admin/matches', label: t('manageMatches') },
+    { href: '/admin/tournaments', label: t('manageTournaments') },
     { href: '/admin/news', label: t('manageNews') },
     { href: '/admin/standings', label: t('manageStandings') },
     { href: '/admin/gallery', label: t('manageGallery') },

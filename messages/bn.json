@@ -36,6 +36,7 @@
     "groupClub": "ক্লাব",
     "groupCompetition": "প্রতিযোগিতা",
     "groupNews": "সংবাদ",
+    "tournaments": "টুর্নামেন্ট",
     "privacyNotice": "ক্লাবকে দর্শক সম্পর্কে বুঝতে সাহায্য করার জন্য এই সাইট বেনামী ভিজিট পরিসংখ্যান (সাধারণ অবস্থান এবং ডিভাইসের ধরন) সংরক্ষণ করে।"
   },
   "notifications": {
@@ -204,6 +205,37 @@
     "title": "গ্যালারি",
     "noImages": "এখনও কোনো ছবি নেই — শীঘ্রই দেখুন।"
   },
+  "tournaments": {
+    "eyebrow": "ক্লাব প্রতিযোগিতা",
+    "title": "টুর্নামেন্ট",
+    "subtitle": "ক্লাব সদস্যদের মধ্যে অভ্যন্তরীণ টুর্নামেন্ট। রেজিস্ট্রেশনের জন্য অ্যাডমিনের দেওয়া অ্যাক্সেস কোড প্রয়োজন।",
+    "noTournaments": "এখনও কোনো টুর্নামেন্ট ঘোষণা করা হয়নি।",
+    "statusRegistrationOpen": "রেজিস্ট্রেশন চলছে",
+    "statusRegistrationClosed": "রেজিস্ট্রেশন বন্ধ",
+    "statusInProgress": "চলমান",
+    "statusCompleted": "সম্পন্ন",
+    "statusCancelled": "বাতিল",
+    "deadline": "রেজিস্ট্রেশন শেষ হবে",
+    "startsOn": "শুরু",
+    "registeredPlayers": "নিবন্ধিত খেলোয়াড়",
+    "noRegistrantsYet": "এখনও কেউ নিবন্ধন করেনি — প্রথম হন!",
+    "joinTitle": "এই টুর্নামেন্টে যোগ দিন",
+    "deadlinePassed": "এই টুর্নামেন্টের রেজিস্ট্রেশনের সময়সীমা পার হয়ে গেছে।",
+    "registrationNotOpen": "এই টুর্নামেন্টের রেজিস্ট্রেশন এখন খোলা নেই।",
+    "yourName": "আপনার নাম",
+    "namePlaceholder": "@ লিখে আপনার নাম টাইপ করুন...",
+    "pickNameFirst": "অনুগ্রহ করে প্রথমে তালিকা থেকে আপনার নাম বেছে নিন।",
+    "enterCodeFirst": "অনুগ্রহ করে অ্যাক্সেস কোড দিন।",
+    "accessCodeLabel": "অ্যাক্সেস কোড",
+    "accessCodePlaceholder": "এই কোডের জন্য একজন অ্যাডমিনকে জিজ্ঞাসা করুন",
+    "accessCodeAskHint": "এই কোড শুধুমাত্র ক্লাব সদস্যদের সাথে শেয়ার করা হয় — না থাকলে একজন অ্যাডমিনকে জিজ্ঞাসা করুন।",
+    "register": "রেজিস্ট্রেশন করুন",
+    "registeredNotice": "আপনি নিবন্ধিত! শুভকামনা।",
+    "invalidCode": "এই অ্যাক্সেস কোডটি সঠিক নয়।",
+    "alreadyRegistered": "আপনি ইতিমধ্যে এই টুর্নামেন্টে নিবন্ধিত।",
+    "tooManyAttempts": "অনেকবার চেষ্টা করা হয়েছে। একটু পর আবার চেষ্টা করুন।",
+    "genericError": "কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।"
+  },
   "locale": {
     "en": "English",
     "bn": "বাংলা"
@@ -247,7 +279,8 @@
       },
       "settings": "পাসওয়ার্ড পরিবর্তন করুন",
       "manageComments": "মন্তব্য পরিচালনা",
-      "analytics": "ভিজিটর অ্যানালিটিক্স"
+      "analytics": "ভিজিটর অ্যানালিটিক্স",
+      "manageTournaments": "টুর্নামেন্ট পরিচালনা"
     },
     "players": {
       "title": "খেলোয়াড়",
@@ -384,6 +417,34 @@
       "pageOf": "পেজ {page} এর {totalPages}",
       "previous": "পূর্ববর্তী",
       "next": "পরবর্তী"
+    },
+    "tournaments": {
+      "title": "টুর্নামেন্ট",
+      "newTournament": "নতুন টুর্নামেন্ট",
+      "name": "টুর্নামেন্টের নাম",
+      "description": "বিবরণ",
+      "accessCode": "অ্যাক্সেস কোড",
+      "generateCode": "তৈরি করুন",
+      "accessCodeHint": "এই কোড শুধুমাত্র প্রকৃত ক্লাব সদস্যদের সাথে শেয়ার করুন (হোয়াটসঅ্যাপ, ডিসকর্ড ইত্যাদি) — যার কাছে এটি থাকবে সে-ই নিবন্ধন করতে পারবে।",
+      "accessCodeManageHint": "খেলোয়াড়দের নিবন্ধন করতে এটি প্রয়োজন। এটি পাবলিক পেজে কখনও দেখানো হয় না।",
+      "registrationDeadline": "রেজিস্ট্রেশনের সময়সীমা",
+      "startDate": "শুরুর তারিখ",
+      "registrantCount": "{count} জন নিবন্ধিত",
+      "deadline": "সময়সীমা",
+      "noTournaments": "এখনও কোনো টুর্নামেন্ট নেই — শুরু করতে একটি তৈরি করুন।",
+      "statusRegistrationOpen": "রেজিস্ট্রেশন চলছে",
+      "statusRegistrationClosed": "রেজিস্ট্রেশন বন্ধ",
+      "statusInProgress": "চলমান",
+      "statusCompleted": "সম্পন্ন",
+      "statusCancelled": "বাতিল",
+      "closeRegistration": "রেজিস্ট্রেশন বন্ধ করুন",
+      "reopenRegistration": "রেজিস্ট্রেশন পুনরায় চালু করুন",
+      "cancelTournament": "টুর্নামেন্ট বাতিল করুন",
+      "cancelConfirm": "এই টুর্নামেন্টটি বাতিল করবেন? নিবন্ধিত খেলোয়াড়রা আর সাইন আপ করতে পারবে না।",
+      "editDetails": "বিবরণ সম্পাদনা",
+      "deleteFromListHint": "এই টুর্নামেন্টটি সম্পূর্ণভাবে মুছতে, টুর্নামেন্ট তালিকার মুছুন বোতাম ব্যবহার করুন।",
+      "registrants": "নিবন্ধনকারী",
+      "noRegistrants": "এখনও কেউ নিবন্ধন করেনি।"
     }
   },
   "errorBoundary": {

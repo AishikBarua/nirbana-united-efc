@@ -326,3 +326,46 @@ model SiteVisit {
   @@index([createdAt])
   @@index([path])
 }
+
+// An internal club tournament that only registered club members can join.
+// Registration is gated by a shared access code (set by the admin and
+// handed out to real members via WhatsApp/Discord/etc.) rather than a
+// login, since the public site has no visitor accounts and anyone can
+// otherwise find the registration page — the code is the only membership
+// check available. The actual bracket/fixture format (round robin,
+// knockout, or groups+knockout) is deliberately NOT chosen here: it's
+// picked by the admin once registration closes and the real headcount is
+// known, at fixture-generation time (a later feature) — see the admin's
+// own request that format choice "depend on how many register."
+model Tournament {
+  id                   String    @id @default(cuid())
+  name                 String
+  slug                 String    @unique
+  description          String?
+  status               String    @default("REGISTRATION_OPEN") // "REGISTRATION_OPEN" | "REGISTRATION_CLOSED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"
+  accessCode           String // shared registration passcode — given only to real club members, never shown publicly
+  registrationDeadline DateTime?
+  startDate            DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([status])
+}
+
+// One row per club member registered for a Tournament. Keyed by `inGameId`
+// rather than a real Player relation, for the same reason as
+// PlayerHighlight/PlayerStatSnapshot above: every tracker sync deletes and
+// recreates all Player rows (see trackerSync.ts), so a foreign key to
+// Player.id would break on the very next sync — inGameId is the one thing
+// that stays stable for the same real person across syncs. `playerName` is
+// denormalized at registration time purely for admin/display convenience.
+model TournamentRegistration {
+  id           String   @id @default(cuid())
+  tournamentId String
+  inGameId     String
+  playerName   String
+  registeredAt DateTime @default(now())
+
+  @@unique([tournamentId, inGameId])
+  @@index([tournamentId])
+}

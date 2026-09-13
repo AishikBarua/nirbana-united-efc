@@ -36,6 +36,7 @@
     "groupClub": "Club",
     "groupCompetition": "Competition",
     "groupNews": "News",
+    "tournaments": "Tournaments",
     "privacyNotice": "This site keeps anonymous visit statistics (general location and device type) to help the club understand its audience."
   },
   "notifications": {
@@ -204,6 +205,37 @@
     "title": "Gallery",
     "noImages": "No images yet — check back soon."
   },
+  "tournaments": {
+    "eyebrow": "Club Competition",
+    "title": "Tournaments",
+    "subtitle": "Internal tournaments between club members. Registration needs the access code the admin shared with the club.",
+    "noTournaments": "No tournaments have been announced yet.",
+    "statusRegistrationOpen": "Registration Open",
+    "statusRegistrationClosed": "Registration Closed",
+    "statusInProgress": "In Progress",
+    "statusCompleted": "Completed",
+    "statusCancelled": "Cancelled",
+    "deadline": "Registration closes",
+    "startsOn": "Starts",
+    "registeredPlayers": "Registered Players",
+    "noRegistrantsYet": "No one has registered yet — be the first!",
+    "joinTitle": "Join This Tournament",
+    "deadlinePassed": "The registration deadline for this tournament has passed.",
+    "registrationNotOpen": "Registration for this tournament is not open.",
+    "yourName": "Your Name",
+    "namePlaceholder": "Type @ and your name...",
+    "pickNameFirst": "Please pick your name from the list first.",
+    "enterCodeFirst": "Please enter the access code.",
+    "accessCodeLabel": "Access Code",
+    "accessCodePlaceholder": "Ask an admin for this code",
+    "accessCodeAskHint": "This code is shared with club members only — ask an admin if you don't have it.",
+    "register": "Register",
+    "registeredNotice": "You're registered! Good luck.",
+    "invalidCode": "That access code is not correct.",
+    "alreadyRegistered": "You are already registered for this tournament.",
+    "tooManyAttempts": "Too many attempts. Please try again later.",
+    "genericError": "Something went wrong. Please try again."
+  },
   "locale": {
     "en": "English",
     "bn": "বাংলা"
@@ -247,7 +279,8 @@
       },
       "settings": "Change Password",
       "manageComments": "Manage Comments",
-      "analytics": "Visitor Analytics"
+      "analytics": "Visitor Analytics",
+      "manageTournaments": "Manage Tournaments"
     },
     "players": {
       "title": "Players",
@@ -384,6 +417,34 @@
       "pageOf": "Page {page} of {totalPages}",
       "previous": "Previous",
       "next": "Next"
+    },
+    "tournaments": {
+      "title": "Tournaments",
+      "newTournament": "New Tournament",
+      "name": "Tournament Name",
+      "description": "Description",
+      "accessCode": "Access Code",
+      "generateCode": "Generate",
+      "accessCodeHint": "Share this code with real club members only (WhatsApp, Discord, etc.) — anyone who has it can register.",
+      "accessCodeManageHint": "This is what players need to register. It's never shown on the public pages.",
+      "registrationDeadline": "Registration Deadline",
+      "startDate": "Start Date",
+      "registrantCount": "{count} registered",
+      "deadline": "Deadline",
+      "noTournaments": "No tournaments yet — create one to get started.",
+      "statusRegistrationOpen": "Registration Open",
+      "statusRegistrationClosed": "Registration Closed",
+      "statusInProgress": "In Progress",
+      "statusCompleted": "Completed",
+      "statusCancelled": "Cancelled",
+      "closeRegistration": "Close Registration",
+      "reopenRegistration": "Reopen Registration",
+      "cancelTournament": "Cancel Tournament",
+      "cancelConfirm": "Cancel this tournament? Registered players will no longer be able to sign up.",
+      "editDetails": "Edit Details",
+      "deleteFromListHint": "To delete this tournament entirely, use the delete button on the Tournaments list.",
+      "registrants": "Registrants",
+      "noRegistrants": "No one has registered yet."
     }
   },
   "errorBoundary": {
