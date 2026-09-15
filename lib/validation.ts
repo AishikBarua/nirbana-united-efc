@@ -143,6 +143,37 @@ export const tournamentRegistrationSchema = z.object({
   accessCode: z.string().trim().min(1).max(50),
 });
 
+// An admin-created fixture within a tournament — see the TournamentMatch
+// model's own comment for why this is hand-entered rather than
+// auto-generated. `homeInGameId`/`awayInGameId` are looked up server-side
+// against that tournament's own registrant list (tournamentService.ts's
+// createMatch/updateMatch) rather than trusted directly, same pattern as
+// tournamentRegistrationSchema above.
+export const tournamentMatchSchema = z
+  .object({
+    round: z.coerce.number().int().min(1).max(200),
+    roundLabel: z.string().trim().max(60).optional().nullable(),
+    homeInGameId: z.string().trim().min(1).max(100),
+    awayInGameId: z.string().trim().min(1).max(100),
+    homeScore: z.coerce.number().int().min(0).max(999).optional().nullable(),
+    awayScore: z.coerce.number().int().min(0).max(999).optional().nullable(),
+    status: z.enum(['SCHEDULED', 'COMPLETED']).default('SCHEDULED'),
+  })
+  .refine((data) => data.homeInGameId !== data.awayInGameId, {
+    message: 'A player cannot be paired against themselves.',
+    path: ['awayInGameId'],
+  });
+
+// The "match day" scheduler's payload — sets one date/time across every
+// fixture that shares a round number (see scheduleRound in
+// tournamentService.ts). Deliberately just round + scheduledAt: which
+// fixtures that touches is resolved server-side from the tournament's own
+// data, never passed in by the client.
+export const tournamentRoundScheduleSchema = z.object({
+  round: z.coerce.number().int().min(1).max(200),
+  scheduledAt: z.coerce.date(),
+});
+
 export const clubInfoSchema = z.object({
   clubName: z.string().trim().min(1).max(150),
   tagline: z.string().trim().max(200).optional().nullable(),

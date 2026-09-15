@@ -1,9 +1,11 @@
 import { prisma } from '@/lib/db';
 import type { z } from 'zod';
-import type { tournamentSchema } from '@/lib/validation';
+import type { tournamentSchema, tournamentMatchSchema, tournamentRoundScheduleSchema } from '@/lib/validation';
 import { slugify, dedupeSlug } from '@/lib/services/playerService';
 
 type TournamentInput = z.infer<typeof tournamentSchema>;
+type TournamentMatchInput = z.infer<typeof tournamentMatchSchema>;
+type RoundScheduleInput = z.infer<typeof tournamentRoundScheduleSchema>;
 
 // Which status an admin is allowed to move a tournament into from its
 // current one — keeps a completed/cancelled tournament from silently being
@@ -106,9 +108,11 @@ export async function updateTournamentStatus(id: string, status: string) {
 }
 
 export async function deleteTournament(id: string) {
-  // No real foreign key to cascade (see TournamentRegistration's own
-  // comment for why), so its registrations are cleaned up by hand first.
+  // No real foreign key to cascade (see TournamentRegistration's and
+  // TournamentMatch's own comments for why), so registrations and fixtures
+  // are cleaned up by hand first.
   await prisma.tournamentRegistration.deleteMany({ where: { tournamentId: id } });
+  await prisma.tournamentMatch.deleteMany({ where: { tournamentId: id } });
   return prisma.tournament.delete({ where: { id } });
 }
 
@@ -129,4 +133,98 @@ export function registerForTournament(tournamentId: string, inGameId: string, pl
 
 export function deleteRegistration(id: string) {
   return prisma.tournamentRegistration.delete({ where: { id } });
+}
+
+// --- Fixtures ("match day" scheduling + the downloadable fixture card) ---
+
+export function listMatches(tournamentId: string) {
+  return prisma.tournamentMatch.findMany({
+    where: { tournamentId },
+    orderBy: [{ round: 'asc' }, { createdAt: 'asc' }],
+  });
+}
+
+export function listRoundMatches(tournamentId: string, round: number) {
+  return prisma.tournamentMatch.findMany({
+    where: { tournamentId, round },
+    orderBy: { createdAt: 'asc' },
+  });
+}
+
+export async function createMatch(tournamentId: string, input: TournamentMatchInput) {
+  const [home, away] = await Promise.all([
+    prisma.tournamentRegistration.findUnique({
+      where: { tournamentId_inGameId: { tournamentId, inGameId: input.homeInGameId } },
+    }),
+    prisma.tournamentRegistration.findUnique({
+      where: { tournamentId_inGameId: { tournamentId, inGameId: input.awayInGameId } },
+    }),
+  ]);
+  if (!home || !away) {
+    throw new Error('Both players must be registered for this tournament.');
+  }
+
+  return prisma.tournamentMatch.create({
+    data: {
+      tournamentId,
+      round: input.round,
+      roundLabel: input.roundLabel || null,
+      homeInGameId: home.inGameId,
+      homePlayerName: home.playerName,
+      awayInGameId: away.inGameId,
+      awayPlayerName: away.playerName,
+      homeScore: input.homeScore ?? null,
+      awayScore: input.awayScore ?? null,
+      status: input.status,
+    },
+  });
+}
+
+export async function updateMatch(tournamentId: string, id: string, input: TournamentMatchInput) {
+  const existing = await prisma.tournamentMatch.findUnique({ where: { id } });
+  if (!existing || existing.tournamentId !== tournamentId) return null;
+
+  const [home, away] = await Promise.all([
+    prisma.tournamentRegistration.findUnique({
+      where: { tournamentId_inGameId: { tournamentId, inGameId: input.homeInGameId } },
+    }),
+    prisma.tournamentRegistration.findUnique({
+      where: { tournamentId_inGameId: { tournamentId, inGameId: input.awayInGameId } },
+    }),
+  ]);
+  if (!home || !away) {
+    throw new Error('Both players must be registered for this tournament.');
+  }
+
+  return prisma.tournamentMatch.update({
+    where: { id },
+    data: {
+      round: input.round,
+      roundLabel: input.roundLabel || null,
+      homeInGameId: home.inGameId,
+      homePlayerName: home.playerName,
+      awayInGameId: away.inGameId,
+      awayPlayerName: away.playerName,
+      homeScore: input.homeScore ?? null,
+      awayScore: input.awayScore ?? null,
+      status: input.status,
+    },
+  });
+}
+
+export function deleteMatch(id: string) {
+  return prisma.tournamentMatch.delete({ where: { id } });
+}
+
+/** Sets the same `scheduledAt` across every fixture in one round of a
+ * tournament at once — this IS the "match day" feature: rather than
+ * scheduling each fixture individually, an admin picks one date/time for
+ * the whole round. Returns how many fixtures were updated (0 means that
+ * round doesn't exist / has no fixtures yet for this tournament). */
+export async function scheduleRound(tournamentId: string, input: RoundScheduleInput) {
+  const result = await prisma.tournamentMatch.updateMany({
+    where: { tournamentId, round: input.round },
+    data: { scheduledAt: input.scheduledAt },
+  });
+  return result.count;
 }

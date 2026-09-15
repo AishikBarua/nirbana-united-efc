@@ -1,9 +1,11 @@
 import { notFound } from 'next/navigation';
 import { getTranslations, getFormatter, unstable_setRequestLocale } from 'next-intl/server';
-import { getTournament, listRegistrations } from '@/lib/services/tournamentService';
+import { getTournament, listRegistrations, listMatches } from '@/lib/services/tournamentService';
+import { SITE_URL } from '@/app/[locale]/layout';
 import AdminNav from '@/components/admin/AdminNav';
 import TournamentForm from '@/components/admin/TournamentForm';
 import TournamentStatusActions from '@/components/admin/TournamentStatusActions';
+import TournamentFixtureBoard from '@/components/admin/TournamentFixtureBoard';
 import DeleteButton from '@/components/admin/DeleteButton';
 
 const STATUS_KEY: Record<string, string> = {
@@ -26,6 +28,7 @@ export default async function ManageTournamentPage({
   const tournament = await getTournament(id);
   if (!tournament) notFound();
   const registrations = await listRegistrations(id);
+  const matches = await listMatches(id);
 
   return (
     <div>
@@ -73,6 +76,15 @@ export default async function ManageTournamentPage({
             <p className="card-surface p-4 text-center text-sm text-gold-100/40">{t('noRegistrants')}</p>
           )}
         </div>
+
+        <TournamentFixtureBoard
+          tournamentId={tournament.id}
+          tournamentName={tournament.name}
+          crestUrl="/brand/crest.jpg"
+          siteHost={SITE_URL.replace(/^https?:\/\//, '')}
+          registrations={registrations}
+          matches={matches}
+        />
       </div>
     </div>
   );

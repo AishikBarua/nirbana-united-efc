@@ -369,3 +369,39 @@ model TournamentRegistration {
   @@unique([tournamentId, inGameId])
   @@index([tournamentId])
 }
+
+// One fixture (head-to-head pairing) within a Tournament. Bracket/round
+// generation is still not automatic (see the Tournament model's own
+// comment) — an admin manually creates each fixture by hand once
+// registration has enough players to pair up, picking two names off that
+// tournament's own registrant list. Keyed to players by `inGameId` rather
+// than a real Player relation, same reasoning as TournamentRegistration
+// above — every tracker sync deletes and recreates all Player rows, so a
+// foreign key to Player.id would break on the next sync. `playerName`
+// fields are denormalized at creation time for the same reason.
+//
+// `round` groups fixtures that belong to the same stage/"match day" of the
+// tournament (Round 1, Semi-Final, etc.) — an admin picks one date/time for
+// an entire round at once via scheduleRound() in tournamentService.ts,
+// which sets `scheduledAt` on every fixture sharing that round number in a
+// single update, rather than scheduling each fixture individually. The
+// downloadable fixture card (components/admin/TournamentFixtureCard.tsx)
+// renders one round's fixtures together with that shared date/time.
+model TournamentMatch {
+  id             String    @id @default(cuid())
+  tournamentId   String
+  round          Int
+  roundLabel     String? // optional human label, e.g. "Semi-Final", "Group A"
+  homeInGameId   String
+  homePlayerName String
+  awayInGameId   String
+  awayPlayerName String
+  homeScore      Int?
+  awayScore      Int?
+  status         String    @default("SCHEDULED") // "SCHEDULED" | "COMPLETED"
+  scheduledAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([tournamentId, round])
+}
