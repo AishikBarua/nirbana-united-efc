@@ -11,6 +11,20 @@
 [build]
   command = "npm run build:netlify"
 
+# Explicitly opt into Netlify's own Next.js Runtime rather than relying
+# purely on auto-detection. Belt-and-braces: on a freshly-created site,
+# auto-detection can silently be skipped if the site's dashboard "Publish
+# directory" was ever hand-typed during setup (this makes Netlify treat it
+# as a plain static site and serve raw build output as flat files instead
+# of running SSR/middleware) — which is exactly what causes every page to
+# 404, since this app's middleware.ts redirects "/" to a locale path like
+# "/en" and that redirect never runs without the real Next.js Runtime.
+# Declaring the plugin here forces it on regardless of that dashboard
+# setting. Netlify installs it automatically during the build; it does not
+# need to be a package.json dependency.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 # Netlify scheduled functions live in netlify/functions/ by convention and
 # are picked up automatically — no extra config needed here for
 # netlify/functions/hourly-sync.mts. This section just makes the functions
